@@ -42,7 +42,7 @@ TEST(shkurinskaya_e_bin_labeling, test_pipeline_run) {
 
   // Create Perf analyzer
   auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task_sequential);
-  perf_analyzer->pipeline_run(perf_attr, perf_results);
+  perf_analyzer->PipelineRun(perf_attr, perf_results);
   ppc::core::Perf::PrintPerfStatistic(perf_results);
   ASSERT_EQ(ans, out);
 }
@@ -84,7 +84,7 @@ TEST(shkurinskaya_e_bin_labeling, test_task_run) {
 
   // Create Perf analyzer
   auto perf_analyzer = std::make_shared<ppc::core::Perf>(testTaskSequential);
-  perf_analyzer->task_run(perf_attr, perf_results);
+  perf_analyzer->TaskRun(perf_attr, perf_results);
   ppc::core::Perf::PrintPerfStatistic(perf_results);
   ASSERT_EQ(ans, out);
 }
