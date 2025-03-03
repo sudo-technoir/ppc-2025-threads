@@ -78,9 +78,9 @@ TEST(shkurinskaya_e_bin_labeling, test_diag_object) {
   // Create Task
   shkurinskaya_e_bin_labeling::TestTaskSequential testTaskSequential(task_data_seq);
   ASSERT_EQ(testTaskSequential.Validation(), true);
-  testTaskSequential.Pre_processing();
+  testTaskSequential.PreProcessing();
   testTaskSequential.Run();
-  testTaskSequential.Post_processing();
+  testTaskSequential.PostProcessing();
   ASSERT_EQ(ans, out);
 }
 
@@ -110,8 +110,8 @@ TEST(shkurinskaya_e_bin_labeling, test_two_components) {
   // Create Task
   shkurinskaya_e_bin_labeling::TestTaskSequential testTaskSequential(task_data_seq);
   ASSERT_EQ(testTaskSequential.Validation(), true);
-  testTaskSequential.Pre_processing();
+  testTaskSequential.PreProcessing();
   testTaskSequential.Run();
-  testTaskSequential.Post_processing();
+  testTaskSequential.PostProcessing();
   ASSERT_EQ(ans, out);
 }
