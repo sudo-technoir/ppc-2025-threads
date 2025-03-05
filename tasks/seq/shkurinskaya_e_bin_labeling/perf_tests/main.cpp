@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <cstdint>
+#include <memory>
 #include <vector>
 
 #include "core/perf/include/perf.hpp"
+#include "core/task/include/task.hpp"
 #include "seq/shkurinskaya_e_bin_labeling/include/ops_seq.hpp"
 
 TEST(shkurinskaya_e_bin_labeling, test_pipeline_run) {
