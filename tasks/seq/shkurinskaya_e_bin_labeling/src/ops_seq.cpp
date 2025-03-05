@@ -1,6 +1,8 @@
 #include "seq/shkurinskaya_e_bin_labeling/include/ops_seq.hpp"
 
+#include <algorithm>
 #include <climits>
+#include <vector>
 
 bool shkurinskaya_e_bin_labeling::TestTaskSequential::PreProcessingImpl() {
   // Init value for input and output
