@@ -55,6 +55,6 @@ bool shkurinskaya_e_bin_labeling::TestTaskSequential::RunImpl() {
 }
 
 bool shkurinskaya_e_bin_labeling::TestTaskSequential::PostProcessingImpl() {
-  std::copy(res_.begin(), res_.end(), reinterpret_cast<int*>(task_data->outputs[0]));
+  std::ranges::copy(res_, reinterpret_cast<int*>(taskData->outputs[0]));
   return true;
 }
