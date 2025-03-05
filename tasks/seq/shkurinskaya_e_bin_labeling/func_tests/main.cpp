@@ -1,7 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
+#include <memory>
 #include <vector>
 
+#include "core/task/include/task.hpp"
 #include "seq/shkurinskaya_e_bin_labeling/include/ops_seq.hpp"
 
 TEST(shkurinskaya_e_bin_labeling, empty_input) {
