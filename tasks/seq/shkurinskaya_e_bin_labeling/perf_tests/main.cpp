@@ -71,7 +71,7 @@ TEST(shkurinskaya_e_bin_labeling, test_task_run) {
   task_data_seq->outputs_count.emplace_back(out.size());
 
   // Create Task
-  auto testTaskSequential = std::make_shared<shkurinskaya_e_bin_labeling::TestTaskSequential>(task_data_seq);
+  auto test_task_sequential = std::make_shared<shkurinskaya_e_bin_labeling::TestTaskSequential>(task_data_seq);
 
   // Create Perf attributes
   auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
