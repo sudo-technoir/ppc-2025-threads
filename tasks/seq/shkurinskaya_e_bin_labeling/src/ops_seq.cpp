@@ -24,14 +24,20 @@ bool shkurinskaya_e_bin_labeling::TestTaskSequential::ValidationImpl() {
          reinterpret_cast<std::vector<int>*>(task_data->inputs[0])->size() > 1;
 }
 
-void shkurinskaya_e_bin_labeling::TestTaskSequential::dfs(int x, int y, int comp) {
-  if (x < 0 || x >= height_ || y < 0 || y >= width_) return;
-  if (res_[x * width_ + y] != 0 || input_[x * width_ + y] != 1) return;
-  res_[x * width_ + y] = comp;
+void shkurinskaya_e_bin_labeling::TestTaskSequential::Dfs(int x, int y, int comp) {
+  if (x < 0 || x >= height_ || y < 0 || y >= width_) {
+    return;
+  }
+  if (res_[(x * width_) + y] != 0 || input_[(x * width_) + y] != 1) {
+    return;
+  }
+  res_[(x * width_) + y] = comp;
   for (int dx = -1; dx <= 1; dx++) {
     for (int dy = -1; dy <= 1; dy++) {
-      if (dx == 0 && dy == 0) continue;
-      dfs(x + dx, y + dy, comp);
+      if (dx == 0 && dy == 0) {
+        continue;
+      }
+      Dfs(x + dx, y + dy, comp);
     }
   }
 }
@@ -40,8 +46,8 @@ bool shkurinskaya_e_bin_labeling::TestTaskSequential::RunImpl() {
   int comp = 1;
   for (int i = 0; i < height_; ++i) {
     for (int j = 0; j < width_; ++j) {
-      if (input_[i * width_ + j] == 1 && res_[i * width_ + j] == 0) {
-        dfs(i, j, comp++);
+      if (input_[(i * width_) + j] == 1 && res_[(i * width_) + j] == 0) {
+        Dfs(i, j, comp++);
       }
     }
   }
