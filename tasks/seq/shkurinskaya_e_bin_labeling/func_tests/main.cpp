@@ -61,8 +61,8 @@ TEST(shkurinskaya_e_bin_labeling, test_diag_object) {
   std::vector<int> out(size);
   std::vector<int> ans(size);
   for (int i = 0; i < height; ++i) {
-    in[i * width + i] = 1;
-    ans[i * width + i] = 1;
+    in[(i * width) + i] = 1;
+    ans[(i * width) + i] = 1;
   }
   // Create TaskData
   auto task_data_seq = std::make_shared<ppc::core::TaskData>();
