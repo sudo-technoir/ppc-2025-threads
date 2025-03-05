@@ -27,8 +27,8 @@ TEST(shkurinskaya_e_bin_labeling, empty_input) {
   task_data_seq->outputs_count.emplace_back(out.size());
 
   // Create Task
-  shkurinskaya_e_bin_labeling::TestTaskSequential testTaskSequential(task_data_seq);
-  ASSERT_EQ(testTaskSequential.Validation(), false);
+  shkurinskaya_e_bin_labeling::TestTaskSequential test_task_sequential(task_data_seq);
+  ASSERT_EQ(test_task_sequential.Validation(), false);
 }
 
 TEST(shkurinskaya_e_bin_labeling, empty_output) {
@@ -51,8 +51,8 @@ TEST(shkurinskaya_e_bin_labeling, empty_output) {
   task_data_seq->outputs_count.emplace_back(out.size());
 
   // Create Task
-  shkurinskaya_e_bin_labeling::TestTaskSequential testTaskSequential(task_data_seq);
-  ASSERT_EQ(testTaskSequential.Validation(), false);
+  shkurinskaya_e_bin_labeling::TestTaskSequential test_task_sequential(task_data_seq);
+  ASSERT_EQ(test_task_sequential.Validation(), false);
 }
 
 TEST(shkurinskaya_e_bin_labeling, test_diag_object) {
@@ -79,11 +79,11 @@ TEST(shkurinskaya_e_bin_labeling, test_diag_object) {
   task_data_seq->outputs_count.emplace_back(out.size());
 
   // Create Task
-  shkurinskaya_e_bin_labeling::TestTaskSequential testTaskSequential(task_data_seq);
-  ASSERT_EQ(testTaskSequential.Validation(), true);
-  testTaskSequential.PreProcessing();
-  testTaskSequential.Run();
-  testTaskSequential.PostProcessing();
+  shkurinskaya_e_bin_labeling::TestTaskSequential test_task_sequential(task_data_seq);
+  ASSERT_EQ(test_task_sequential.Validation(), true);
+  test_task_sequential.PreProcessing();
+  test_task_sequential.Run();
+  test_task_sequential.PostProcessing();
   ASSERT_EQ(ans, out);
 }
 
@@ -111,10 +111,10 @@ TEST(shkurinskaya_e_bin_labeling, test_two_components) {
   task_data_seq->outputs_count.emplace_back(out.size());
 
   // Create Task
-  shkurinskaya_e_bin_labeling::TestTaskSequential testTaskSequential(task_data_seq);
-  ASSERT_EQ(testTaskSequential.Validation(), true);
-  testTaskSequential.PreProcessing();
-  testTaskSequential.Run();
-  testTaskSequential.PostProcessing();
+  shkurinskaya_e_bin_labeling::TestTaskSequential test_task_sequential(task_data_seq);
+  ASSERT_EQ(test_task_sequential.Validation(), true);
+  test_task_sequential.PreProcessing();
+  test_task_sequential.Run();
+  test_task_sequential.PostProcessing();
   ASSERT_EQ(ans, out);
 }
