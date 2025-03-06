@@ -7,7 +7,7 @@
 #include "core/task/include/task.hpp"
 #include "seq/shkurinskaya_e_bin_labeling/include/ops_seq.hpp"
 
-TEST(shkurinskaya_e_bin_labeling, empty_input) {
+TEST(shkurinskaya_e_bin_labeling_seq, empty_input) {
   int height = 5000;
   int width = 5000;
   int size = width * height;
@@ -31,7 +31,7 @@ TEST(shkurinskaya_e_bin_labeling, empty_input) {
   ASSERT_EQ(test_task_sequential.Validation(), false);
 }
 
-TEST(shkurinskaya_e_bin_labeling, empty_output) {
+TEST(shkurinskaya_e_bin_labeling_seq, empty_output) {
   int height = 5000;
   int width = 5000;
   int size = width * height;
@@ -55,7 +55,7 @@ TEST(shkurinskaya_e_bin_labeling, empty_output) {
   ASSERT_EQ(test_task_sequential.Validation(), false);
 }
 
-TEST(shkurinskaya_e_bin_labeling, test_diag_object) {
+TEST(shkurinskaya_e_bin_labeling_seq, test_diag_object) {
   int height = 100;
   int width = 100;
   int size = width * height;
@@ -87,7 +87,7 @@ TEST(shkurinskaya_e_bin_labeling, test_diag_object) {
   ASSERT_EQ(ans, out);
 }
 
-TEST(shkurinskaya_e_bin_labeling, test_two_components) {
+TEST(shkurinskaya_e_bin_labeling_seq, test_two_components) {
   int height = 100;
   int width = 100;
   int size = width * height;
