@@ -9,7 +9,7 @@
 #include "core/task/include/task.hpp"
 #include "seq/shkurinskaya_e_bin_labeling/include/ops_seq.hpp"
 
-TEST(shkurinskaya_e_bin_labeling, test_pipeline_run) {
+TEST(shkurinskaya_e_bin_labeling_seq, test_pipeline_run) {
   int height = 5000;
   int width = 5000;
   int size = width * height;
@@ -51,7 +51,7 @@ TEST(shkurinskaya_e_bin_labeling, test_pipeline_run) {
   ASSERT_EQ(ans, out);
 }
 
-TEST(shkurinskaya_e_bin_labeling, test_task_run) {
+TEST(shkurinskaya_e_bin_labeling_seq, test_task_run) {
   int height = 5000;
   int width = 5000;
   int size = width * height;
