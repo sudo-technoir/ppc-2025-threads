@@ -20,7 +20,6 @@ bool shkurinskaya_e_bin_labeling::TestTaskSequential::ValidationImpl() {
   // Check count elements of output
   return task_data->inputs_count[0] > 1 && task_data->outputs_count[0] == task_data->inputs_count[0] &&
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1 &&
-         reinterpret_cast<std::vector<int>*>(task_data->inputs[0])->size() > 1 &&
          reinterpret_cast<std::vector<int>*>(task_data->inputs[0])->size() > 1;
 }
 
