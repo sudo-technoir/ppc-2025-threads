@@ -14,12 +14,12 @@ class TestTaskSequential : public ppc::core::Task {
   bool ValidationImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
-  void Dfs(int x, int y, int comp);
 
  private:
   int width_, height_;
   std::vector<int> input_;
   std::vector<int> res_;
+  void Dfs(int x, int y, int comp);
 };
 
 }  // namespace shkurinskaya_e_bin_labeling
