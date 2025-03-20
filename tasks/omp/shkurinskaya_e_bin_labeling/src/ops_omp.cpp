@@ -7,9 +7,9 @@
 bool shkurinskaya_e_bin_labeling::TestTaskOpenMP::PreProcessingImpl() {
   // Init value for input and output
   input_ = std::vector<int>(task_data->inputs_count[0]);
-  auto* tmp_ptr = reinterpret_cast<int*>(task_data->inputs[0]);
-  width_ = reinterpret_cast<int*>(task_data->inputs[1])[0];
-  height_ = reinterpret_cast<int*>(task_data->inputs[2])[0];
+  auto *tmp_ptr = reinterpret_cast<int *>(task_data->inputs[0]);
+  width_ = reinterpret_cast<int *>(task_data->inputs[1])[0];
+  height_ = reinterpret_cast<int *>(task_data->inputs[2])[0];
   std::copy(tmp_ptr, tmp_ptr + task_data->inputs_count[0], input_.begin());
   // Init value for output
   res_.assign(task_data->inputs_count[0], 0);
@@ -18,7 +18,8 @@ bool shkurinskaya_e_bin_labeling::TestTaskOpenMP::PreProcessingImpl() {
 
 bool shkurinskaya_e_bin_labeling::TestTaskOpenMP::ValidationImpl() {
   // Check count elements of output
-  return task_data->inputs_count[0] > 1 && task_data->outputs_count[0] == task_data->inputs_count[0] &&
+  return task_data->inputs_count[0] > 1 &&
+         task_data->outputs_count[0] == task_data->inputs_count[0] &&
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
@@ -50,7 +51,9 @@ bool shkurinskaya_e_bin_labeling::TestTaskOpenMP::RunImpl() {
       if (input_[(i * width_) + j] == 1 && res_[(i * width_) + j] == 0) {
         int current_comp;
 #pragma omp critical
-        { current_comp = comp++; }
+        {
+          current_comp = comp++;
+        }
         Dfs(i, j, current_comp);
       }
     }
@@ -58,8 +61,7 @@ bool shkurinskaya_e_bin_labeling::TestTaskOpenMP::RunImpl() {
   return true;
 }
 
-
 bool shkurinskaya_e_bin_labeling::TestTaskOpenMP::PostProcessingImpl() {
-  std::ranges::copy(res_, reinterpret_cast<int*>(task_data->outputs[0]));
+  std::ranges::copy(res_, reinterpret_cast<int *>(task_data->outputs[0]));
   return true;
 }
