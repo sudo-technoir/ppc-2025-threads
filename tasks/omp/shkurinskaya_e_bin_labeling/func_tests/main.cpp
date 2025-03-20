@@ -213,4 +213,4 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_vertical_stripe) {
   test_task_omp.Run();
   test_task_omp.PostProcessing();
   ASSERT_EQ(ans, out);
-}
+} 
