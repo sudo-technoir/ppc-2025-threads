@@ -29,7 +29,9 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_pipeline_run) {
   task_data_omp->outputs_count.emplace_back(out.size());
 
   // Create Task
-  auto test_task_omp = std::make_shared<shkurinskaya_e_bin_labeling::TestTaskOpenMP>(task_data_omp);
+  auto test_task_omp =
+      std::make_shared<shkurinskaya_e_bin_labeling::TestTaskOpenMP>(
+          task_data_omp);
 
   // Create Perf attributes
   auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
@@ -37,7 +39,9 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_pipeline_run) {
   const auto t0 = std::chrono::high_resolution_clock::now();
   perf_attr->current_timer = [&] {
     auto current_time_point = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_point - t0).count();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        current_time_point - t0)
+                        .count();
     return static_cast<double>(duration) * 1e-9;
   };
 
@@ -60,7 +64,8 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_task_run) {
   std::vector<int> out(size);
   std::vector<int> ans(size, 1);
   // Create TaskData
-  std::shared_ptr<ppc::core::TaskData> task_data_omp = std::make_shared<ppc::core::TaskData>();
+  std::shared_ptr<ppc::core::TaskData> task_data_omp =
+      std::make_shared<ppc::core::TaskData>();
   task_data_omp->inputs.emplace_back(reinterpret_cast<uint8_t *>(in.data()));
   task_data_omp->inputs_count.emplace_back(in.size());
   task_data_omp->inputs.emplace_back(reinterpret_cast<uint8_t *>(&height));
@@ -71,7 +76,9 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_task_run) {
   task_data_omp->outputs_count.emplace_back(out.size());
 
   // Create Task
-  auto test_task_omp = std::make_shared<shkurinskaya_e_bin_labeling::TestTaskOpenMP>(task_data_omp);
+  auto test_task_omp =
+      std::make_shared<shkurinskaya_e_bin_labeling::TestTaskOpenMP>(
+          task_data_omp);
 
   // Create Perf attributes
   auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
@@ -79,7 +86,9 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_task_run) {
   const auto t0 = std::chrono::high_resolution_clock::now();
   perf_attr->current_timer = [&] {
     auto current_time_point = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(current_time_point - t0).count();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        current_time_point - t0)
+                        .count();
     return static_cast<double>(duration) * 1e-9;
   };
 
@@ -91,4 +100,4 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_task_run) {
   perf_analyzer->TaskRun(perf_attr, perf_results);
   ppc::core::Perf::PrintPerfStatistic(perf_results);
   ASSERT_EQ(ans, out);
-} 
+}
