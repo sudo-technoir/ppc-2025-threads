@@ -91,4 +91,4 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_task_run) {
   perf_analyzer->TaskRun(perf_attr, perf_results);
   ppc::core::Perf::PrintPerfStatistic(perf_results);
   ASSERT_EQ(ans, out);
-} 
+}
