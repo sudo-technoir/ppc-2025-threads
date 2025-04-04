@@ -3,10 +3,9 @@
 #include <algorithm>
 #include <climits>
 #include <iostream>
-#include <string>
 #include <vector>
 
-int shkurinskaya_e_bin_labeling_omp::TaskOMP::findRoot(int index) {
+int shkurinskaya_e_bin_labeling_omp::TaskOMP::FindRoot(int index) {
   while (parent_[index] != index) {
     int grandparent = parent_[parent_[index]];
     parent_[index] = grandparent;
@@ -15,7 +14,7 @@ int shkurinskaya_e_bin_labeling_omp::TaskOMP::findRoot(int index) {
   return index;
 }
 
-void shkurinskaya_e_bin_labeling_omp::TaskOMP::unionSets(int index_a, int index_b) {
+void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int index_a, int index_b) {
   int root_a = findRoot(index_a);
   int root_b = findRoot(index_b);
 
@@ -35,7 +34,7 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::unionSets(int index_a, int index_
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PreProcessingImpl() {
   // Init value for input and output
-  std::cout << "PreProcessingImpl: Initializing inputs and outputs..." << std::endl;
+  std::cout << "PreProcessingImpl: Initializing inputs and outputs...\n";
   input_ = std::vector<int>(task_data->inputs_count[0]);
   auto* tmp_ptr = reinterpret_cast<int*>(task_data->inputs[0]);
   width_ = reinterpret_cast<int*>(task_data->inputs[1])[0];
@@ -50,20 +49,20 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PreProcessingImpl() {
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::ValidationImpl() {
-  std::cout << "ValidationImpl: Validating input data..." << std::endl;
+  std::cout << "ValidationImpl: Validating input data...\n";
   // Check count elements of output
   return task_data->inputs_count[0] > 1 && task_data->outputs_count[0] == task_data->inputs_count[0] &&
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
-  std::cout << "[DEBUG] RunImpl: Starting processing..." << std::endl;
+  std::cout << "[DEBUG] RunImpl: Starting processing...\n";
 
   // Первый этап
 #pragma omp parallel for
   for (int i = 0; i < height_; ++i) {
     for (int j = 0; j < width_; ++j) {
-      int index = i * width_ + j;
+      int index = (i * width_) + j;
       if (input_[index] == 1) {
         parent_[index] = index;
         rank_[index] = 0;
@@ -77,8 +76,8 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
 #pragma omp parallel for
   for (int i = 0; i < height_; ++i) {
     for (int j = 0; j < width_; ++j) {
-      int index = i * width_ + j;
-      if (input_[index] != 1) continue;
+      int index = (i * width_) + j;
+      if (input_[index] != 1) { continue; }
 
       const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
@@ -87,7 +86,7 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
         int nj = j + directions[d][1];
 
         if (ni >= 0 && ni < height_ && nj >= 0 && nj < width_) {
-          int neighbor_index = ni * width_ + nj;
+          int neighbor_index = (ni * width_) + nj;
 
           if (input_[neighbor_index] == 1) {
             int root_a = index;
@@ -122,7 +121,7 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
 #pragma omp parallel for
   for (int i = 0; i < height_; ++i) {
     for (int j = 0; j < width_; ++j) {
-      int index = i * width_ + j;
+      int index = (i * width_) + j;
       if (input_[index] == 1) {
         while (parent_[index] != parent_[parent_[index]]) {
           parent_[index] = parent_[parent_[index]];
@@ -130,17 +129,17 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
       }
     }
   }
-  std::cout << "[DEBUG] RunImpl: Processing completed." << std::endl;
+  std::cout << "[DEBUG] RunImpl: Processing completed\n";
   return true;
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PostProcessingImpl() {
-  std::cout << "PostProcessingImpl: Starting post-processing..." << std::endl;
+  std::cout << "PostProcessingImpl: Starting post-processing...\n";
   // mark the parent_ with smallest label
   int comp = 1;
   for (int i = 0; i < height_; ++i) {
     for (int j = 0; j < width_; ++j) {
-      int index = i * width_ + j;
+      int index = (i * width_) + j;
       int root = index;
       if (parent_[root] == -1) {
         continue;
@@ -154,6 +153,6 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PostProcessingImpl() {
       res_[index] = label_[parent_[root]];
     }
   }
-  std::copy(res_.begin(), res_.end(), reinterpret_cast<int*>(task_data->outputs[0]));
+  std::ranges::copy(res_.begin(), res_.end(), reinterpret_cast<int*>(task_data->outputs[0]));
   return true;
 }
