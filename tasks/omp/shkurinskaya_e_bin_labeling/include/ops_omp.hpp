@@ -22,8 +22,8 @@ class TaskOMP : public ppc::core::Task {
   std::vector<int> parent_;
   std::vector<int> label_;
   std::vector<int> rank_;
-  void unionSets(int index_a, int index_b);
-  int findRoot(int index);
+  void UnionSets(int index_a, int index_b);
+  int FindRoot(int index);
 };
 
 }  // namespace shkurinskaya_e_bin_labeling_omp
