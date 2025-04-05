@@ -6,59 +6,58 @@
 #include <vector>
 
 void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
-    const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+  const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 #pragma omp parallel for
-    for (int i = 0; i < height_; ++i) {
-        for (int j = 0; j < width_; ++j) {
-            int index = (i * width_) + j;
-            if (input_[index] != 1) {
+  for (int i = 0; i < height_; ++i) {
+    for (int j = 0; j < width_; ++j) {
+      int index = (i * width_) + j;
+      if (input_[index] != 1) {
         continue;
       }
-            for (int d = 0; d < 8; ++d) {
-                int ni = i + directions[d][0];
-                int nj = j + directions[d][1];
+      for (int d = 0; d < 8; ++d) {
+        int ni = i + directions[d][0];
+        int nj = j + directions[d][1];
 
-                if (!IsValidIndex(ni, nj)) {
-        continue;
-      }
-                int neighbor_index = (ni * width_) + nj;
-
-                if (input_[neighbor_index] == 1) {
-                    UnionSets(index, neighbor_index);
-                }
-            }
+        if (!IsValidIndex(ni, nj)) {
+          continue;
         }
+        int neighbor_index = (ni * width_) + nj;
+
+        if (input_[neighbor_index] == 1) {
+          UnionSets(index, neighbor_index);
+        }
+      }
     }
+  }
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j) const {
-    return (i >= 0 && i < height_ && j >= 0 && j < width_);
+  return (i >= 0 && i < height_ && j >= 0 && j < width_);
 }
 
 void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int index_a, int index_b) {
-    int root_a = FindRoot(index_a);
-    int root_b = FindRoot(index_b);
+  int root_a = FindRoot(index_a);
+  int root_b = FindRoot(index_b);
 
-    if (root_a != root_b) {
-        if (rank_[root_a] < rank_[root_b]) {
-            parent_[root_a] = root_b;
-        } else if (rank_[root_a] > rank_[root_b]) {
-            parent_[root_b] = root_a;
-        } else {
-            parent_[root_b] = root_a;
-            rank_[root_a]++;
-        }
+  if (root_a != root_b) {
+    if (rank_[root_a] < rank_[root_b]) {
+      parent_[root_a] = root_b;
+    } else if (rank_[root_a] > rank_[root_b]) {
+      parent_[root_b] = root_a;
+    } else {
+      parent_[root_b] = root_a;
+      rank_[root_a]++;
     }
+  }
 }
 
 int shkurinskaya_e_bin_labeling_omp::TaskOMP::FindRoot(int index) {
-    while (parent_[index] != index) {
-        parent_[index] = parent_[parent_[index]];
-        index = parent_[index];
-    }
-    return index;
+  while (parent_[index] != index) {
+    parent_[index] = parent_[parent_[index]];
+    index = parent_[index];
+  }
+  return index;
 }
-
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PreProcessingImpl() {
   // Init value for input and output
@@ -101,7 +100,7 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
   }
 
   // Второй этап
-ProcessUnion();
+  ProcessUnion();
 
   // Третий этап
 #pragma omp parallel for
