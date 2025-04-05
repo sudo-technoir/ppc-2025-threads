@@ -15,8 +15,8 @@ int shkurinskaya_e_bin_labeling_omp::TaskOMP::FindRoot(int index) {
 }
 
 void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int index_a, int index_b) {
-  int root_a = findRoot(index_a);
-  int root_b = findRoot(index_b);
+  int root_a = FindRoot(index_a);
+  int root_b = FindRoot(index_b);
 
   if (root_a != root_b) {
     {
@@ -77,7 +77,9 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
   for (int i = 0; i < height_; ++i) {
     for (int j = 0; j < width_; ++j) {
       int index = (i * width_) + j;
-      if (input_[index] != 1) { continue; }
+      if (input_[index] != 1) {
+        continue;
+      }
 
       const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
