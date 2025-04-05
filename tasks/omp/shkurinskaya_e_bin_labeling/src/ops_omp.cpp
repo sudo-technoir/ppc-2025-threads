@@ -11,14 +11,16 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
     for (int i = 0; i < height_; ++i) {
         for (int j = 0; j < width_; ++j) {
             int index = (i * width_) + j;
-            if (input_[index] != 1) { continue; }
-
+            if (input_[index] != 1) {
+        continue;
+      }
             for (int d = 0; d < 8; ++d) {
                 int ni = i + directions[d][0];
                 int nj = j + directions[d][1];
 
-                if (!IsValidIndex(ni, nj)) { continue; }
-
+                if (!IsValidIndex(ni, nj)) {
+        continue;
+      }
                 int neighbor_index = (ni * width_) + nj;
 
                 if (input_[neighbor_index] == 1) {
