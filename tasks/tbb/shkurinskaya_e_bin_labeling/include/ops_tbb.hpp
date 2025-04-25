@@ -9,7 +9,7 @@ namespace shkurinskaya_e_bin_labeling_tbb {
 
 class TaskTBB : public ppc::core::Task {
  public:
-  explicit TestTaskTBB(ppc::core::TaskDataPtr task_data) : Task(std::move(task_data)) {}
+  explicit TaskTBB(ppc::core::TaskDataPtr task_data) : Task(std::move(task_data)) {}
   bool ValidationImpl() override;
   bool PreProcessingImpl() override;
   bool RunImpl() override;
