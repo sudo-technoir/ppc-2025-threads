@@ -51,7 +51,7 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::UnionSets(int a, int b) {
 }
 
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
-  const int directions[8][2] = {{-1, 0},  {1, 0},  {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+  const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
   // Init parents
   tbb::parallel_for(0, height_, [&](int i) {
@@ -85,19 +85,18 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
             }
           }
         }
-      });
+});
 
-  // Path compression
-  tbb::parallel_for(0, height_, [&](int i) {
-    for (int j = 0; j < width_; ++j) {
-      int idx = i * width_ + j;
-      if (input_[idx] == 1) {
-        parent_[idx] = FindRoot(idx);
-      }
+// Path compression
+tbb::parallel_for(0, height_, [&](int i) {
+  for (int j = 0; j < width_; ++j) {
+    int idx = i * width_ + j;
+    if (input_[idx] == 1) {
+      parent_[idx] = FindRoot(idx);
     }
-  });
-  return true;
-}
+  }
+});
+return true;
 
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PostProcessingImpl() {
   int comp = 1;
