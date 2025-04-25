@@ -79,8 +79,6 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
             int neighbor_index = ni * width_ + nj;
             if (input_[neighbor_index] == 1) {
               UnionSets(index, neighbor_index);
-             }
-                }
               }
             }
           }
