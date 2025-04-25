@@ -67,7 +67,7 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
   });
 
   // Union-Find
-  tbb::parallel_for(tbb::blocked_range2d<int>(0, height_, 0, width_), [&](const tbb::blocked_range2d<int>& r) {
+  tbb::parallel_for(tbb::blocked_range2d<int>(0, height_, 0, width_), [&](const tbb::blocked_range2d<int> &r) {
     for (int i = r.rows().begin(); i < r.rows().end(); ++i) {
       for (int j = r.cols().begin(); j < r.cols().end(); ++j) {
         int index = i * width_ + j;
@@ -110,6 +110,6 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PostProcessingImpl() {
       res_[idx] = label_[root];
     }
   }
-  std::copy(res_.begin(), res_.end(), reinterpret_cast<int*>(task_data->outputs[0]));
+  std::copy(res_.begin(), res_.end(), reinterpret_cast<int *>(task_data->outputs[0]));
   return true;
 }
