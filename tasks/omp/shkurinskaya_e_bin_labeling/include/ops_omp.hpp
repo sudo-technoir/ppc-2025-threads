@@ -26,6 +26,8 @@ class TaskOMP : public ppc::core::Task {
   int FindRoot(int index);
   [[nodiscard]] bool IsValidIndex(int i, int j) const;
   void ProcessUnion();
+  void ParallelCollectPairs_(std::vector<std::pair<size_t,size_t>>& pairs);
+  void CompressPathsSequential_();
 };
 
 }  // namespace shkurinskaya_e_bin_labeling_omp
