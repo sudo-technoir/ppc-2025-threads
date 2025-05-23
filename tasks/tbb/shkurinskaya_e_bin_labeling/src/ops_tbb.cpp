@@ -13,20 +13,18 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::ValidationImpl() {
 }
 
 void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
-    tbb::concurrent_vector<std::pair<size_t, size_t>>& pairs) {
+    tbb::concurrent_vector<std::pair<size_t, size_t>> &pairs) {
   auto range = tbb::blocked_range2d<int>(0, height_, 0, width_, 64, 64);
 
   tbb::parallel_for(range, [&, this](const tbb::blocked_range2d<int> &r) {
     for (int r0 = r.rows().begin(); r0 != r.rows().end(); ++r0)
       for (int c0 = r.cols().begin(); c0 != r.cols().end(); ++c0) {
         size_t idx = CoordToIndex(r0, c0);
-        if (!input_[idx])
-          continue;
+        if (!input_[idx]) continue;
 
         for (auto [dr, dc] : directions) {
           int nr = r0 + dr, nc = c0 + dc;
-          if (!IsValidCoord(nr, nc))
-            continue;
+          if (!IsValidCoord(nr, nc)) continue;
 
           size_t nidx = CoordToIndex(nr, nc);
           if (input_[nidx])
@@ -36,10 +34,9 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
   });
 }
 
-void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_()
-{
-    for (size_t i = 0; i < total_; ++i)
-        if (input_[i]) parent_[i] = FindRoot(i);
+void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_() {
+  for (size_t i = 0; i < total_; ++i)
+    if (input_[i]) parent_[i] = FindRoot(i);
 }
 
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PreProcessingImpl() {
@@ -96,10 +93,10 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
     }
   });
 
-tbb::concurrent_vector<std::pair<size_t, size_t>> pairs;
-ParallelCollectPairs_(pairs);
+  tbb::concurrent_vector<std::pair<size_t, size_t>> pairs;
+  ParallelCollectPairs_(pairs);
 
-for (auto& p : pairs) UnionSets(p.first, p.second);
+  for (auto& p : pairs) UnionSets(p.first, p.second);
   CompressPathsSequential_();
   return true;
 }
