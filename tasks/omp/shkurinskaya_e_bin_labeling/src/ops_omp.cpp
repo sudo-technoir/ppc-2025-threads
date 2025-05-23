@@ -4,8 +4,7 @@
 #include <climits>
 #include <vector>
 
-void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(
-    std::vector<std::pair<size_t, size_t>> &pairs) {
+void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(std::vector<std::pair<size_t, size_t>> &pairs) {
   pairs.clear();
   pairs.reserve(total_);
 
@@ -16,18 +15,15 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(
 
 #pragma omp for nowait schedule(static)
     for (size_t idx = 0; idx < total_; ++idx) {
-      if (input_[idx] == 0)
-        continue;
+      if (input_[idx] == 0) continue;
 
       auto [r, c] = IndexToCoord(idx);
       for (auto [dr, dc] : directions) {
         int nr = r + dr, nc = c + dc;
-        if (!IsValidCoord(nr, nc))
-          continue;
+        if (!IsValidCoord(nr, nc)) continue;
 
         size_t nidx = CoordToIndex(nr, nc);
-        if (input_[nidx] == 1)
-          local.emplace_back(idx, nidx);
+        if (input_[nidx] == 1) local.emplace_back(idx, nidx);
       }
 
       if (local.size() > 256) {
@@ -42,13 +38,10 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(
   }
 }
 
-void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion()
-{
-    std::vector<std::pair<size_t,size_t>> pairs;
-    ParallelCollectPairs_(pairs);
-
-    for (auto& [a, b] : pairs)
-        UnionSets(a, b);
+void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
+  std::vector<std::pair<size_t,size_t>> pairs;
+  ParallelCollectPairs_(pairs);
+  for (auto& [a, b] : pairs) UnionSets(a, b);
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j) const {
