@@ -12,30 +12,42 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::ValidationImpl() {
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
-static const int g_dirs[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+static const int directions[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
 void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
     tbb::concurrent_vector<std::pair<size_t, size_t>> &pairs) {
   pairs.clear();
   pairs.reserve(static_cast<size_t>(width_) * height_);
 
-  auto range = tbb::blocked_range2d<int>(0, height_, 0, width_, 64, 64);
+  tbb::parallel_for(
+      tbb::blocked_range2d<int>(0, height_, 0, width_, 64, 64), [&, this](const tbb::blocked_range2d<int> &br) {
+        std::vector<std::pair<size_t, size_t>> local;
+        local.reserve(64);
 
-  tbb::parallel_for(range, [&, this](const tbb::blocked_range2d<int> &r) {
-    for (int r0 = r.rows().begin(); r0 != r.rows().end(); ++r0)
-      for (int c0 = r.cols().begin(); c0 != r.cols().end(); ++c0) {
-        int idx = r0 * width_ + c0;
-        if (input_[idx] == 0) continue;
+        for (int r = br.rows().begin(); r != br.rows().end(); ++r)
+          for (int c = br.cols().begin(); c != br.cols().end(); ++c) {
+            int idx = r * width_ + c;
+            if (input_[idx] == 0) continue;
 
-        for (auto [dr, dc] : g_dirs) {
-          int nr = r0 + dr, nc = c0 + dc;
-          if (nr < 0 || nr >= height_ || nc < 0 || nc >= width_) continue;
+            for (auto [dr, dc] : directions) {
+              int nr = r + dr, nc = c + dc;
+              if (nr < 0 || nr >= height_ || nc < 0 || nc >= width_) continue;
 
-          int nidx = nr * width_ + nc;
-          if (input_[nidx] == 1) pairs.push_back({static_cast<size_t>(idx), static_cast<size_t>(nidx)});
-        }
-      }
-  });
+              int nidx = nr * width_ + nc;
+              if (input_[nidx] == 1)
+                local.emplace_back(static_cast<size_t>(idx),
+                                   static_cast<size_t>(nidx));
+            }
+
+            if (local.size() > 256) {
+              pairs.insert(pairs.end(), local.begin(), local.end());
+              local.clear();
+            }
+          }
+
+        if (!local.empty())
+          pairs.insert(pairs.end(), local.begin(), local.end());
+      });
 }
 
 void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_() {
