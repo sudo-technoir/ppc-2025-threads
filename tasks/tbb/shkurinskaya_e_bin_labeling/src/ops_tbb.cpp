@@ -20,7 +20,10 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
   pairs.reserve(static_cast<size_t>(width_) * height_);
 
   tbb::parallel_for(
-      tbb::blocked_range2d<int>(0, height_, 0, width_, 64, 64), [&, this](const tbb::blocked_range2d<int> &br) {
+      tbb::blocked_range2d<int>(0, height_, // строки
+                                0, width_,  // столбцы
+                                64, 64),    // зерно
+      [&, this](const tbb::blocked_range2d<int> &br) {
         std::vector<std::pair<size_t, size_t>> local;
         local.reserve(64);
 
@@ -34,9 +37,7 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
               if (nr < 0 || nr >= height_ || nc < 0 || nc >= width_) continue;
 
               int nidx = nr * width_ + nc;
-              if (input_[nidx] == 1)
-                local.emplace_back(static_cast<size_t>(idx),
-                                   static_cast<size_t>(nidx));
+              if (input_[nidx] == 1) local.emplace_back(static_cast<size_t>(idx), static_cast<size_t>(nidx));
             }
 
             if (local.size() > 256) {
