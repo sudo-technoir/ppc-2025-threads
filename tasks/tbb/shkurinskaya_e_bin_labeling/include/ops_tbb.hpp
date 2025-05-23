@@ -1,10 +1,11 @@
 #pragma once
 
+#include <tbb/concurrent_vector.h>
+
 #include <utility>
 #include <vector>
 
 #include "core/task/include/task.hpp"
-#include <tbb/concurrent_vector.h>
 
 namespace shkurinskaya_e_bin_labeling_tbb {
 
