@@ -4,30 +4,51 @@
 #include <climits>
 #include <vector>
 
-void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
-  const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
-#pragma omp parallel for
-  for (int i = 0; i < height_; ++i) {
-    for (int j = 0; j < width_; ++j) {
-      int index = (i * width_) + j;
-      if (input_[index] != 1) {
+void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(
+    std::vector<std::pair<size_t, size_t>> &pairs) {
+  pairs.clear();
+  pairs.reserve(total_);
+
+#pragma omp parallel
+  {
+    std::vector<std::pair<size_t, size_t>> local;
+    local.reserve(64);
+
+#pragma omp for nowait schedule(static)
+    for (size_t idx = 0; idx < total_; ++idx) {
+      if (input_[idx] == 0)
         continue;
-      }
-      for (int d = 0; d < 8; ++d) {
-        int ni = i + directions[d][0];
-        int nj = j + directions[d][1];
 
-        if (!IsValidIndex(ni, nj)) {
+      auto [r, c] = IndexToCoord(idx);
+      for (auto [dr, dc] : directions) {
+        int nr = r + dr, nc = c + dc;
+        if (!IsValidCoord(nr, nc))
           continue;
-        }
-        int neighbor_index = (ni * width_) + nj;
 
-        if (input_[neighbor_index] == 1) {
-          UnionSets(index, neighbor_index);
-        }
+        size_t nidx = CoordToIndex(nr, nc);
+        if (input_[nidx] == 1)
+          local.emplace_back(idx, nidx);
+      }
+
+      if (local.size() > 256) {
+#pragma omp critical
+        { pairs.insert(pairs.end(), local.begin(), local.end()); }
+        local.clear();
       }
     }
+
+#pragma omp critical
+    { pairs.insert(pairs.end(), local.begin(), local.end()); }
   }
+}
+
+void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion()
+{
+    std::vector<std::pair<size_t,size_t>> pairs;
+    ParallelCollectPairs_(pairs);
+
+    for (auto& [a, b] : pairs)
+        UnionSets(a, b);
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j) const {
@@ -98,7 +119,6 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
   ProcessUnion();
 
   // Третий этап
-#pragma omp parallel for
   for (int i = 0; i < height_; ++i) {
     for (int j = 0; j < width_; ++j) {
       int index = (i * width_) + j;
