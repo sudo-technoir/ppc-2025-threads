@@ -19,26 +19,25 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
   pairs.clear();
   pairs.reserve(static_cast<size_t>(width_) * height_);
 
-  tbb::parallel_for(
-      tbb::blocked_range2d<int>(0, height_, // строки
+  tbb::parallel_for(tbb::blocked_range2d<int>(0, height_, // строки
                                 0, width_,  // столбцы
                                 64, 64),    // зерно
-      [&, this](const tbb::blocked_range2d<int> &br) {
-        std::vector<std::pair<size_t, size_t>> local;
-        local.reserve(64);
+                   [&, this](const tbb::blocked_range2d<int> &br) {
+                     std::vector<std::pair<size_t, size_t>> local;
+                     local.reserve(64);
 
-        for (int r = br.rows().begin(); r != br.rows().end(); ++r)
-          for (int c = br.cols().begin(); c != br.cols().end(); ++c) {
-            int idx = r * width_ + c;
-            if (input_[idx] == 0) continue;
+                      for (int r = br.rows().begin(); r != br.rows().end(); ++r)
+                        for (int c = br.cols().begin(); c != br.cols().end(); ++c) {
+                          int idx = r * width_ + c;
+                            if (input_[idx] == 0) continue;
 
-            for (auto [dr, dc] : directions) {
-              int nr = r + dr, nc = c + dc;
-              if (nr < 0 || nr >= height_ || nc < 0 || nc >= width_) continue;
+                            for (auto [dr, dc] : directions) {
+                              int nr = r + dr, nc = c + dc;
+                              if (nr < 0 || nr >= height_ || nc < 0 || nc >= width_) continue;
 
-              int nidx = nr * width_ + nc;
-              if (input_[nidx] == 1) local.emplace_back(static_cast<size_t>(idx), static_cast<size_t>(nidx));
-            }
+                              int nidx = nr * width_ + nc;
+                              if (input_[nidx] == 1) local.emplace_back(static_cast<size_t>(idx), static_cast<size_t>(nidx));
+                            }
 
             if (local.size() > 256) {
               pairs.insert(pairs.end(), local.begin(), local.end());
