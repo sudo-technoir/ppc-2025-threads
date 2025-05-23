@@ -27,8 +27,7 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
           if (!IsValidCoord(nr, nc)) continue;
 
           size_t nidx = CoordToIndex(nr, nc);
-          if (input_[nidx])
-            pairs.push_back({idx, nidx});
+          if (input_[nidx]) pairs.push_back({idx, nidx});
         }
       }
   });
@@ -96,7 +95,7 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
   tbb::concurrent_vector<std::pair<size_t, size_t>> pairs;
   ParallelCollectPairs_(pairs);
 
-  for (auto& p : pairs) UnionSets(p.first, p.second);
+  for (auto &p : pairs) UnionSets(p.first, p.second);
   CompressPathsSequential_();
   return true;
 }
