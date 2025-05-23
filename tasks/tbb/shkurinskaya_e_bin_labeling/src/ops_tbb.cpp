@@ -22,9 +22,9 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
   tbb::parallel_for(tbb::blocked_range2d<int>(0, height_, // строки
                                               0, width_,  // столбцы
                                               64, 64),    // зерно
-                   [&, this](const tbb::blocked_range2d<int> &br) {
-                     std::vector<std::pair<size_t, size_t>> local;
-                     local.reserve(64);
+                    [&, this](const tbb::blocked_range2d<int> &br) {
+                      std::vector<std::pair<size_t, size_t>> local;
+                      local.reserve(64);
 
                       for (int r = br.rows().begin(); r != br.rows().end(); ++r)
                         for (int c = br.cols().begin(); c != br.cols().end(); ++c) {
