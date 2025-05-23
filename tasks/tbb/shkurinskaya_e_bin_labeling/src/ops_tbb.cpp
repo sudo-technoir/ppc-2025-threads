@@ -12,6 +12,36 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::ValidationImpl() {
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
+void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
+    tbb::concurrent_vector<std::pair<size_t, size_t>>& pairs) {
+  auto range = tbb::blocked_range2d<int>(0, height_, 0, width_, 64, 64);
+
+  tbb::parallel_for(range, [&, this](const tbb::blocked_range2d<int> &r) {
+    for (int r0 = r.rows().begin(); r0 != r.rows().end(); ++r0)
+      for (int c0 = r.cols().begin(); c0 != r.cols().end(); ++c0) {
+        size_t idx = CoordToIndex(r0, c0);
+        if (!input_[idx])
+          continue;
+
+        for (auto [dr, dc] : directions) {
+          int nr = r0 + dr, nc = c0 + dc;
+          if (!IsValidCoord(nr, nc))
+            continue;
+
+          size_t nidx = CoordToIndex(nr, nc);
+          if (input_[nidx])
+            pairs.push_back({idx, nidx});
+        }
+      }
+  });
+}
+
+void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_()
+{
+    for (size_t i = 0; i < total_; ++i)
+        if (input_[i]) parent_[i] = FindRoot(i);
+}
+
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PreProcessingImpl() {
   input_ = std::vector<int>(task_data->inputs_count[0]);
   auto *tmp_ptr = reinterpret_cast<int *>(task_data->inputs[0]);
@@ -66,36 +96,11 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
     }
   });
 
-  // Union-Find
-  tbb::parallel_for(tbb::blocked_range2d<int>(0, height_, 0, width_), [&](const tbb::blocked_range2d<int> &r) {
-    for (int i = r.rows().begin(); i < r.rows().end(); ++i) {
-      for (int j = r.cols().begin(); j < r.cols().end(); ++j) {
-        int index = i * width_ + j;
-        if (input_[index] != 1) continue;
-        for (int d = 0; d < 8; ++d) {
-          int ni = i + directions[d][0];
-          int nj = j + directions[d][1];
-          if (ni >= 0 && ni < height_ && nj >= 0 && nj < width_) {
-            int neighbor_index = ni * width_ + nj;
-            if (input_[neighbor_index] == 1) {
-              UnionSets(index, neighbor_index);
-            }
-          }
-        }
-      }
-    }
-  });
+tbb::concurrent_vector<std::pair<size_t, size_t>> pairs;
+ParallelCollectPairs_(pairs);
 
-  // Path compression
-  tbb::parallel_for(0, height_, [&](int i) {
-    for (int j = 0; j < width_; ++j) {
-      int idx = i * width_ + j;
-      if (input_[idx] == 1) {
-        parent_[idx] = FindRoot(idx);
-      }
-    }
-  });
-
+for (auto& p : pairs) UnionSets(p.first, p.second);
+  CompressPathsSequential_();
   return true;
 }
 
