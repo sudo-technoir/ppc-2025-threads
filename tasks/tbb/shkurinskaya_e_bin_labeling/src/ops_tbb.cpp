@@ -12,30 +12,40 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::ValidationImpl() {
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
+static const int g_dirs[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+
 void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
     tbb::concurrent_vector<std::pair<size_t, size_t>> &pairs) {
-  auto range = tbb::blocked_range2d<int>(0, height_, 0, width_, 64, 64);
+  pairs.clear();
+  pairs.reserve(static_cast<size_t>(width_) * height_);
+
+  auto range = tbb::blocked_range2d<int>(0, height_, // строки
+                                         0, width_,  // столбцы
+                                         64, 64);    // зерно
 
   tbb::parallel_for(range, [&, this](const tbb::blocked_range2d<int> &r) {
     for (int r0 = r.rows().begin(); r0 != r.rows().end(); ++r0)
       for (int c0 = r.cols().begin(); c0 != r.cols().end(); ++c0) {
-        size_t idx = CoordToIndex(r0, c0);
-        if (!input_[idx]) continue;
+        int idx = r0 * width_ + c0;
+        if (input_[idx] == 0) continue;
 
-        for (auto [dr, dc] : directions) {
+        for (auto [dr, dc] : g_dirs) {
           int nr = r0 + dr, nc = c0 + dc;
-          if (!IsValidCoord(nr, nc)) continue;
+          if (nr < 0 || nr >= height_ || nc < 0 || nc >= width_) continue;
 
-          size_t nidx = CoordToIndex(nr, nc);
-          if (input_[nidx]) pairs.push_back({idx, nidx});
+          int nidx = nr * width_ + nc;
+          if (input_[nidx] == 1)
+            pairs.push_back(
+                {static_cast<size_t>(idx), static_cast<size_t>(nidx)});
         }
       }
   });
 }
 
 void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_() {
-  for (size_t i = 0; i < total_; ++i)
-    if (input_[i]) parent_[i] = FindRoot(i);
+    size_t total = static_cast<size_t>(width_) * height_;
+    for (size_t i = 0; i < total; ++i)
+        if (input_[i]) parent_[i] = FindRoot(static_cast<int>(i));
 }
 
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PreProcessingImpl() {
@@ -77,8 +87,6 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::UnionSets(int a, int b) {
 }
 
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
-  const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
-
   // Init parents
   tbb::parallel_for(0, height_, [&](int i) {
     for (int j = 0; j < width_; ++j) {
