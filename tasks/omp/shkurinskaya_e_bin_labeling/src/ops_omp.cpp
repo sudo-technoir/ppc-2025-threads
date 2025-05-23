@@ -19,18 +19,14 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(std::vector
     for (int r = 0; r < height_; ++r) {
       for (int c = 0; c < width_; ++c) {
         int idx = r * width_ + c;
-        if (input_[idx] == 0)
-          continue;
+        if (input_[idx] == 0) continue;
 
         for (auto [dr, dc] : directions) {
           int nr = r + dr, nc = c + dc;
-          if (!IsValidIndex(nr, nc))
-            continue;
+          if (!IsValidIndex(nr, nc)) continue;
 
           int nidx = nr * width_ + nc;
-          if (input_[nidx] == 1)
-            local.emplace_back(static_cast<size_t>(idx),
-                               static_cast<size_t>(nidx));
+          if (input_[nidx] == 1) local.emplace_back(static_cast<size_t>(idx), static_cast<size_t>(nidx));
         }
 
         if (local.size() > 256) {
