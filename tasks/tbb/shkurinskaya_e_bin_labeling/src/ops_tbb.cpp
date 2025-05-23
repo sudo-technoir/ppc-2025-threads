@@ -36,18 +36,18 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
                             if (nr < 0 || nr >= height_ || nc < 0 || nc >= width_) continue;
 
                             int nidx = nr * width_ + nc;
-                            if (input_[nidx] == 1) local.emplace_back(static_cast<size_t>(idx), static_cast<size_t>(nidx));
+                            if (input_[nidx] == 1)
+                              local.emplace_back(static_cast<size_t>(idx), static_cast<size_t>(nidx));
                           }
 
-            if (local.size() > 256) {
-              pairs.insert(pairs.end(), local.begin(), local.end());
-              local.clear();
-            }
-          }
+                            if (local.size() > 256) {
+                              pairs.insert(pairs.end(), local.begin(), local.end());
+                              local.clear();
+                            }
+                          }
 
-        if (!local.empty())
-          pairs.insert(pairs.end(), local.begin(), local.end());
-      });
+                        if (!local.empty()) pairs.insert(pairs.end(), local.begin(), local.end());
+                      });
 }
 
 void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_() {
