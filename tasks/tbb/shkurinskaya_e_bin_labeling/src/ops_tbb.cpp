@@ -41,12 +41,12 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
                           }
 
                           if (local.size() > 256) {
-                            pairs.insert(pairs.end(), local.begin(), local.end());
+                            pairs.grow_by(local.begin(), local.end());
                             local.clear();
                           }
                         }
 
-                      if (!local.empty()) pairs.insert(pairs.end(), local.begin(), local.end());
+                      if (!local.empty()) pairs.grow_by(local.begin(), local.end());
                     });
 }
 
