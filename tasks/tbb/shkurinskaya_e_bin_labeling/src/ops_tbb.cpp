@@ -40,14 +40,14 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
                               local.emplace_back(static_cast<size_t>(idx), static_cast<size_t>(nidx));
                           }
 
-                           if (local.size() > 256) {
+                         if (local.size() > 256) {
                             pairs.insert(pairs.end(), local.begin(), local.end());
                             local.clear();
                           }
                         }
 
-                       if (!local.empty()) pairs.insert(pairs.end(), local.begin(), local.end());
-                     });
+                      if (!local.empty()) pairs.insert(pairs.end(), local.begin(), local.end());
+                    });
 }
 
 void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_() {
