@@ -19,9 +19,7 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
   pairs.clear();
   pairs.reserve(static_cast<size_t>(width_) * height_);
 
-  auto range = tbb::blocked_range2d<int>(0, height_, // строки
-                                         0, width_,  // столбцы
-                                         64, 64);    // зерно
+  auto range = tbb::blocked_range2d<int>(0, height_, 0, width_, 64, 64);
 
   tbb::parallel_for(range, [&, this](const tbb::blocked_range2d<int> &r) {
     for (int r0 = r.rows().begin(); r0 != r.rows().end(); ++r0)
@@ -34,18 +32,16 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
           if (nr < 0 || nr >= height_ || nc < 0 || nc >= width_) continue;
 
           int nidx = nr * width_ + nc;
-          if (input_[nidx] == 1)
-            pairs.push_back(
-                {static_cast<size_t>(idx), static_cast<size_t>(nidx)});
+          if (input_[nidx] == 1) pairs.push_back({static_cast<size_t>(idx), static_cast<size_t>(nidx)});
         }
       }
   });
 }
 
 void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_() {
-    size_t total = static_cast<size_t>(width_) * height_;
-    for (size_t i = 0; i < total; ++i)
-        if (input_[i]) parent_[i] = FindRoot(static_cast<int>(i));
+  size_t total = static_cast<size_t>(width_) * height_;
+  for (size_t i = 0; i < total; ++i)
+    if (input_[i]) parent_[i] = FindRoot(static_cast<int>(i));
 }
 
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PreProcessingImpl() {
