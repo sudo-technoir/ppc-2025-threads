@@ -4,6 +4,13 @@
 #include <climits>
 #include <vector>
 
+static const int directions[8][2] = {
+    {-1,-1}, {-1,0}, {-1,1},
+    { 0,-1},          { 0,1},
+    { 1,-1}, { 1,0},  { 1,1}
+};
+
+
 void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(std::vector<std::pair<size_t, size_t>>& pairs) {
   pairs.clear();
   pairs.reserve(total_);
