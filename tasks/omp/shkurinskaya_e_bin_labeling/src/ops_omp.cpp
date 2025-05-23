@@ -6,39 +6,46 @@
 
 static const int directions[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
-
 void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(std::vector<std::pair<size_t, size_t>>& pairs) {
-  pairs.clear();
-  pairs.reserve(total_);
+    pairs.clear();
+    pairs.reserve(static_cast<size_t>(width_) * height_);
 
 #pragma omp parallel
-  {
-    std::vector<std::pair<size_t, size_t>> local;
-    local.reserve(64);
+    {
+        std::vector<std::pair<size_t,size_t>> local;
+        local.reserve(64);
 
 #pragma omp for nowait schedule(static)
-    for (size_t idx = 0; idx < total_; ++idx) {
-      if (input_[idx] == 0) continue;
+        for (int r = 0; r < height_; ++r) {
+            for (int c = 0; c < width_; ++c) {
+                int idx = r * width_ + c;
+                if (input_[idx] == 0) continue;
 
-      auto [r, c] = IndexToCoord(idx);
-      for (auto [dr, dc] : directions) {
-        int nr = r + dr, nc = c + dc;
-        if (!IsValidCoord(nr, nc)) continue;
+                for (auto [dr, dc] : directions) {
+                    int nr = r + dr, nc = c + dc;
+                    if (!IsValidIndex(nr, nc)) continue;
 
-        size_t nidx = CoordToIndex(nr, nc);
-        if (input_[nidx] == 1) local.emplace_back(idx, nidx);
-      }
+                    int nidx = nr * width_ + nc;
+                    if (input_[nidx] == 1)
+                        local.emplace_back(static_cast<size_t>(idx),
+                                           static_cast<size_t>(nidx));
+                }
 
-      if (local.size() > 256) {
+                if (local.size() > 256) {
 #pragma omp critical
-        { pairs.insert(pairs.end(), local.begin(), local.end()); }
-        local.clear();
-      }
+                    {
+                        pairs.insert(pairs.end(), local.begin(), local.end());
+                    }
+                    local.clear();
+                }
+            }
+        }
+
+#pragma omp critical
+        {
+            pairs.insert(pairs.end(), local.begin(), local.end());
+        }
     }
-
-#pragma omp critical
-    { pairs.insert(pairs.end(), local.begin(), local.end()); }
-  }
 }
 
 void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
