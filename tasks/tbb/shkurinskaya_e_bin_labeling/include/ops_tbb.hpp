@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "core/task/include/task.hpp"
+#include <tbb/concurrent_vector.h>
 
 namespace shkurinskaya_e_bin_labeling_tbb {
 
@@ -26,6 +27,8 @@ class TaskTBB : public ppc::core::Task {
 
   int FindRoot(int index);
   void UnionSets(int a, int b);
+  void ParallelCollectPairs_(tbb::concurrent_vector<std::pair<size_t, size_t>>& pairs);
+  void CompressPathsSequential_();
 };
 
 }  // namespace shkurinskaya_e_bin_labeling_tbb
