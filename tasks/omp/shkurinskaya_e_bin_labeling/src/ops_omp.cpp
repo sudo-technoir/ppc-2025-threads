@@ -4,7 +4,7 @@
 #include <climits>
 #include <vector>
 
-void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(std::vector<std::pair<size_t, size_t>> &pairs) {
+void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(std::vector<std::pair<size_t, size_t>>& pairs) {
   pairs.clear();
   pairs.reserve(total_);
 
@@ -39,7 +39,7 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(std::vector
 }
 
 void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
-  std::vector<std::pair<size_t,size_t>> pairs;
+  std::vector<std::pair<size_t, size_t>> pairs;
   ParallelCollectPairs_(pairs);
   for (auto& [a, b] : pairs) UnionSets(a, b);
 }
