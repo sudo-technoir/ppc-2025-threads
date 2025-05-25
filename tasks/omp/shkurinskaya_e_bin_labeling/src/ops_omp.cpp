@@ -6,21 +6,17 @@
 #include <vector>
 
 void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
-  const int directions[8][2] = {{-1, 0},  {1, 0},  {0, -1}, {0, 1},
-                                {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+  const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 #pragma omp parallel for schedule(dynamic)
   for (int idx = 0; idx < N; ++idx) {
-    if (input_[idx] != 1)
-      continue;
+    if (input_[idx] != 1) continue;
     int x = idx % W;
     int y = idx / W;
     for (int dy = -1; dy <= 1; ++dy) {
       for (int dx = -1; dx <= 1; ++dx) {
-        if (dx == 0 && dy == 0)
-          continue;
+        if (dx == 0 && dy == 0) continue;
         int nx = x + dx, ny = y + dy;
-        if (!IsValidIndex(nx, ny))
-          continue;
+        if (!IsValidIndex(nx, ny)) continue;
         int nidx = ny * W + nx;
         if (input_[nidx] == 1) {
           UnionSets(idx, nidx);
@@ -29,23 +25,20 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
     }
   }
 
-  bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j)
-      const {
+  bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j) const {
     return (i >= 0 && i < height_ && j >= 0 && j < width_);
   }
 
   void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int a, int b) {
     int rootA = FindRoot(a);
     int rootB = FindRoot(b);
-    if (rootA == rootB)
-      return;
+    if (rootA == rootB) return;
 
 #pragma omp critical
     {
       rootA = FindRoot(rootA);
       rootB = FindRoot(rootB);
-      if (rootA == rootB)
-        return;
+      if (rootA == rootB) return;
 
       if (rank_[rootA] < rank_[rootB]) {
         parent_[rootA] = rootB;
@@ -84,8 +77,7 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
   bool shkurinskaya_e_bin_labeling_omp::TaskOMP::ValidationImpl() {
     std::cout << "ValidationImpl: Validating input data...\n";
     // Check count elements of output
-    return task_data->inputs_count[0] > 1 &&
-           task_data->outputs_count[0] == task_data->inputs_count[0] &&
+    return task_data->inputs_count[0] > 1 && task_data->outputs_count[0] == task_data->inputs_count[0] &&
            task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
   }
 
@@ -140,7 +132,6 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
         res_[index] = label_[parent_[root]];
       }
     }
-    std::ranges::copy(res_.begin(), res_.end(),
-                      reinterpret_cast<int *>(task_data->outputs[0]));
+    std::ranges::copy(res_.begin(), res_.end(), reinterpret_cast<int *>(task_data->outputs[0]));
     return true;
   }
