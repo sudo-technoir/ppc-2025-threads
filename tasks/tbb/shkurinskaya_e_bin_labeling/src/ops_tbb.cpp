@@ -58,7 +58,6 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::UnionSets(int a, int b) {
 
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
   const int H = height_, W = width_;
-  const int N = H * W;
 
   // I. Инициализация множества
   tbb::parallel_for(0, H, [&](int i) {
