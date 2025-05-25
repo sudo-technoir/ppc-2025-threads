@@ -26,10 +26,10 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PreProcessingImpl() {
   std::copy(tmp_ptr, tmp_ptr + task_data->inputs_count[0], input_.begin());
 
   int size = width_ * height_;
-  res_.resize(size);
-  parent_.resize(size);
-  rank_.resize(size);
-  label_.resize(size);
+  res_.assign(size, 0);
+  parent_.assign(size, -1);
+  rank_.assign(size, 0);
+  label_.assign(size, 0);
   return true;
 }
 
