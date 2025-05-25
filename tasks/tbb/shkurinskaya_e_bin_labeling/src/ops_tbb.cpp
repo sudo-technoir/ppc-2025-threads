@@ -12,44 +12,6 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::ValidationImpl() {
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
-static const int directions[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
-
-void shkurinskaya_e_bin_labeling_tbb::TaskTBB::ParallelCollectPairs_(
-    tbb::concurrent_vector<std::pair<size_t, size_t>> &pairs) {
-  pairs.clear();
-  pairs.reserve(static_cast<size_t>(width_) * height_);
-
-  tbb::parallel_for(tbb::blocked_range2d<int>(0, height_,  // строки
-                                              0, width_,   // столбцы
-                                              64, 64),     // зерно
-                    [&, this](const tbb::blocked_range2d<int> &br) {
-                      std::vector<std::pair<size_t, size_t>> local;
-                      local.reserve(64);
-
-                      for (int r = br.rows().begin(); r != br.rows().end(); ++r)
-                        for (int c = br.cols().begin(); c != br.cols().end(); ++c) {
-                          int idx = r * width_ + c;
-                          if (input_[idx] == 0) continue;
-
-                          for (auto [dr, dc] : directions) {
-                            int nr = r + dr, nc = c + dc;
-                            if (nr < 0 || nr >= height_ || nc < 0 || nc >= width_) continue;
-
-                            int nidx = nr * width_ + nc;
-                            if (input_[nidx] == 1)
-                              local.emplace_back(static_cast<size_t>(idx), static_cast<size_t>(nidx));
-                          }
-
-                          if (local.size() > 256) {
-                            pairs.grow_by(local.begin(), local.end());
-                            local.clear();
-                          }
-                        }
-
-                      if (!local.empty()) pairs.grow_by(local.begin(), local.end());
-                    });
-}
-
 void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_() {
   size_t total = static_cast<size_t>(width_) * height_;
   for (size_t i = 0; i < total; ++i)
@@ -59,8 +21,8 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_() {
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PreProcessingImpl() {
   input_ = std::vector<int>(task_data->inputs_count[0]);
   auto *tmp_ptr = reinterpret_cast<int *>(task_data->inputs[0]);
-  width_ = reinterpret_cast<int *>(task_data->inputs[1])[0];
-  height_ = reinterpret_cast<int *>(task_data->inputs[2])[0];
+  width_ = reinterpret_cast<int *>(task_data->inputs[2])[0];
+  height_ = reinterpret_cast<int *>(task_data->inputs[1])[0];
   std::copy(tmp_ptr, tmp_ptr + task_data->inputs_count[0], input_.begin());
 
   int size = width_ * height_;
@@ -73,13 +35,13 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PreProcessingImpl() {
 
 int shkurinskaya_e_bin_labeling_tbb::TaskTBB::FindRoot(int index) {
   while (parent_[index] != index) {
-    parent_[index] = parent_[parent_[index]];
     index = parent_[index];
   }
   return index;
 }
 
 void shkurinskaya_e_bin_labeling_tbb::TaskTBB::UnionSets(int a, int b) {
+  std::lock_guard<std::mutex> lock(union_mutex_);
   int root_a = FindRoot(a);
   int root_b = FindRoot(b);
   if (root_a == root_b) return;
@@ -94,11 +56,15 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::UnionSets(int a, int b) {
   }
 }
 
-bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
-  // Init parents
-  tbb::parallel_for(0, height_, [&](int i) {
-    for (int j = 0; j < width_; ++j) {
-      int idx = i * width_ + j;
+bool TaskTBB::RunImpl() {
+  const int H = height_, W = width_;
+  const int N = H * W;
+
+  // I. Инициализация множества
+  tbb::parallel_for(0, H, [&](int i) {
+    int base = i * W;
+    for (int j = 0; j < W; ++j) {
+      int idx = base + j;
       if (input_[idx] == 1) {
         parent_[idx] = idx;
         rank_[idx] = 0;
@@ -108,24 +74,43 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
     }
   });
 
-  tbb::concurrent_vector<std::pair<size_t, size_t>> pairs;
-  ParallelCollectPairs_(pairs);
+  // II. Параллельное объединение по 8-ми соседям
+  static const int dirs[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+  tbb::parallel_for(tbb::blocked_range2d<int>(0, H, 0, W), [&](auto const &br) {
+    for (int i = br.rows().begin(); i != br.rows().end(); ++i) {
+      int base = i * W;
+      for (int j = br.cols().begin(); j != br.cols().end(); ++j) {
+        int idx = base + j;
+        if (input_[idx] != 1) continue;
+        for (auto &d : dirs) {
+          int ni = i + d[0], nj = j + d[1];
+          if (ni < 0 || ni >= H || nj < 0 || nj >= W) continue;
+          UnionSets(idx, ni * W + nj);
+        }
+      }
+    }
+  });
 
-  for (auto &p : pairs) UnionSets(p.first, p.second);
+  // III. Сжатие путей (последовательное)
   CompressPathsSequential_();
+
   return true;
 }
 
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PostProcessingImpl() {
+  const int N = height_ * width_;
   int comp = 1;
-  for (int i = 0; i < height_; ++i) {
-    for (int j = 0; j < width_; ++j) {
-      int idx = i * width_ + j;
-      if (parent_[idx] == -1) continue;
-      int root = FindRoot(idx);
-      if (label_[root] == 0) label_[root] = comp++;
-      res_[idx] = label_[root];
+  std::fill(label_.begin(), label_.end(), 0);
+  for (int idx = 0; idx < N; ++idx) {
+    if (parent_[idx] < 0) {
+      res_[idx] = 0;
+      continue;
     }
+    int root = FindRoot(idx);
+    if (label_[root] == 0) {
+      label_[root] = comp++;
+    }
+    res_[idx] = label_[root];
   }
   std::copy(res_.begin(), res_.end(), reinterpret_cast<int *>(task_data->outputs[0]));
   return true;
