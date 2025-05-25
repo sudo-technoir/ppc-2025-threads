@@ -126,6 +126,7 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PostProcessingImpl() {
       if (label_[root] == 0) label_[root] = comp++;
       res_[idx] = label_[root];
     }
+  
   }
   std::copy(res_.begin(), res_.end(), reinterpret_cast<int *>(task_data->outputs[0]));
   return true;
