@@ -81,10 +81,10 @@ bool TaskOMP::RunImpl() {
 }
 
 inline int TaskOMP::FindRoot(int i) {
-  if (parent_[i] != i) {
-    parent_[i] = FindRoot(parent_[i]);
+  while (parent_[i] != i) {
+    i = parent_[i];
   }
-  return parent_[i];
+  return i;
 }
 
 void TaskOMP::UnionSets(int a, int b) {
