@@ -2,102 +2,94 @@
 
 #include <algorithm>
 #include <climits>
+#include <iostream>
 #include <vector>
 
-static const int directions[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
-
-void shkurinskaya_e_bin_labeling_omp::TaskOMP::ParallelCollectPairs_(std::vector<std::pair<size_t, size_t>>& pairs) {
-  pairs.clear();
-  pairs.reserve(static_cast<size_t>(width_) * height_);
-
-#pragma omp parallel
-  {
-    std::vector<std::pair<size_t, size_t>> local;
-    local.reserve(64);
-
-#pragma omp for nowait schedule(static)
-    for (int r = 0; r < height_; ++r) {
-      for (int c = 0; c < width_; ++c) {
-        int idx = r * width_ + c;
-        if (input_[idx] == 0) continue;
-
-        for (auto [dr, dc] : directions) {
-          int nr = r + dr, nc = c + dc;
-          if (!IsValidIndex(nr, nc)) continue;
-
-          int nidx = nr * width_ + nc;
-          if (input_[nidx] == 1) local.emplace_back(static_cast<size_t>(idx), static_cast<size_t>(nidx));
-        }
-
-        if (local.size() > 256) {
-#pragma omp critical
-          { pairs.insert(pairs.end(), local.begin(), local.end()); }
-          local.clear();
-        }
-      }
-    }
-
-#pragma omp critical
-    { pairs.insert(pairs.end(), local.begin(), local.end()); }
-  }
-}
-
 void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
-  std::vector<std::pair<size_t, size_t>> pairs;
-  ParallelCollectPairs_(pairs);
-  for (auto& [a, b] : pairs) UnionSets(a, b);
+  const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+#pragma omp parallel for schedule(dynamic)
+for (int idx = 0; idx < N; ++idx) {
+    if (input_[idx] != 1) continue;
+    int x = idx % W;
+    int y = idx / W;
+    for (int dy = -1; dy <= 1; ++dy) {
+        for (int dx = -1; dx <= 1; ++dx) {
+            if (dx == 0 && dy == 0) continue;
+            int nx = x + dx, ny = y + dy;
+            if (!IsValidIndex(nx, ny)) continue;
+            int nidx = ny * W + nx;
+            if (input_[nidx] == 1) {
+                UnionSets(idx, nidx);
+            }
+        }
+    }
+  #pragma omp parallel for schedule(dynamic)
+for (int idx = 0; idx < N; ++idx) {
+    if (input_[idx] == 1) {
+        parent_[idx] = FindRoot(idx);
+    }
+}
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j) const {
   return (i >= 0 && i < height_ && j >= 0 && j < width_);
 }
 
-void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int index_a, int index_b) {
-  int root_a = FindRoot(index_a);
-  int root_b = FindRoot(index_b);
+void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int a, int b) {
+    int rootA = FindRoot(a);
+    int rootB = FindRoot(b);
+    if (rootA == rootB) return;
 
-  if (root_a != root_b) {
-    if (rank_[root_a] < rank_[root_b]) {
-      parent_[root_a] = root_b;
-    } else if (rank_[root_a] > rank_[root_b]) {
-      parent_[root_b] = root_a;
-    } else {
-      parent_[root_b] = root_a;
-      rank_[root_a]++;
+    #pragma omp critical
+    {
+        rootA = FindRoot(rootA);
+        rootB = FindRoot(rootB);
+        if (rootA == rootB) return;
+
+        if (rank_[rootA] < rank_[rootB]) {
+            parent_[rootA] = rootB;
+        } else if (rank_[rootA] > rank_[rootB]) {
+            parent_[rootB] = rootA;
+        } else {
+            parent_[rootB] = rootA;
+            ++rank_[rootA];
+        }
     }
-  }
 }
 
-int shkurinskaya_e_bin_labeling_omp::TaskOMP::FindRoot(int index) {
-  while (parent_[index] != index) {
-    parent_[index] = parent_[parent_[index]];
-    index = parent_[index];
-  }
-  return index;
+inline int shkurinskaya_e_bin_labeling_omp::TaskOMP::FindRoot(int i) {
+    if (parent_[i] != i) {
+        parent_[i] = FindRoot(parent_[i]);
+    }
+    return parent_[i];
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PreProcessingImpl() {
   // Init value for input and output
+  std::cout << "PreProcessingImpl: Initializing inputs and outputs...\n";
   input_ = std::vector<int>(task_data->inputs_count[0]);
   auto* tmp_ptr = reinterpret_cast<int*>(task_data->inputs[0]);
   width_ = reinterpret_cast<int*>(task_data->inputs[1])[0];
   height_ = reinterpret_cast<int*>(task_data->inputs[2])[0];
   std::copy(tmp_ptr, tmp_ptr + task_data->inputs_count[0], input_.begin());
   // Init value for output
-  res_.resize(task_data->inputs_count[0], 0);
-  parent_.resize(task_data->inputs_count[0], 0);
-  rank_.resize(task_data->inputs_count[0], 0);
-  label_.resize(task_data->inputs_count[0], 0);
+  res_.resize(task_data->inputs_count[0]);
+  parent_.resize(task_data->inputs_count[0]);
+  rank_.resize(task_data->inputs_count[0]);
+  label_.resize(task_data->inputs_count[0]);
   return true;
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::ValidationImpl() {
+  std::cout << "ValidationImpl: Validating input data...\n";
   // Check count elements of output
   return task_data->inputs_count[0] > 1 && task_data->outputs_count[0] == task_data->inputs_count[0] &&
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
+  std::cout << "[DEBUG] RunImpl: Starting processing...\n";
+
   // Первый этап
 #pragma omp parallel for
   for (int i = 0; i < height_; ++i) {
@@ -116,6 +108,7 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
   ProcessUnion();
 
   // Третий этап
+#pragma omp parallel for
   for (int i = 0; i < height_; ++i) {
     for (int j = 0; j < width_; ++j) {
       int index = (i * width_) + j;
@@ -126,10 +119,12 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
       }
     }
   }
+  std::cout << "[DEBUG] RunImpl: Processing completed\n";
   return true;
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PostProcessingImpl() {
+  std::cout << "PostProcessingImpl: Starting post-processing...\n";
   // mark the parent_ with smallest label
   int comp = 1;
   for (int i = 0; i < height_; ++i) {
