@@ -25,10 +25,10 @@ class TaskTBB : public ppc::core::Task {
   std::vector<int> parent_;
   std::vector<int> rank_;
   std::vector<int> label_;
+  std::mutex union_mutex_;
 
   int FindRoot(int index);
   void UnionSets(int a, int b);
-  void ParallelCollectPairs_(tbb::concurrent_vector<std::pair<size_t, size_t>>& pairs);
   void CompressPathsSequential_();
 };
 
