@@ -83,7 +83,9 @@ bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
         for (auto &d : dirs) {
           int ni = i + d[0], nj = j + d[1];
           if (ni < 0 || ni >= H || nj < 0 || nj >= W) continue;
-          UnionSets(idx, ni * W + nj);
+          int neighbor_idx = ni * W + nj;
+          if (input_[neighbor_idx] != 1) continue;
+          UnionSets(idx, neighbor_idx);
         }
       }
     }
