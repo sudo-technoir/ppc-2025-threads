@@ -133,4 +133,4 @@ void TaskOMP::ProcessUnion() {
 
   bool TaskOMP::IsValidIndex(int i, int j) const { return (i >= 0 && i < height_ && j >= 0 && j < width_); }
 
-} // namespace shkurinskaya_e_bin_labeling_omp
+}  // namespace shkurinskaya_e_bin_labeling_omp
