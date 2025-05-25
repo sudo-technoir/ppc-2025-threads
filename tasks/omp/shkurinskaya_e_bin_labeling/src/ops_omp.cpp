@@ -27,6 +27,7 @@ void TaskOMP::ProcessUnion() {
       }
     }
   }
+}
 
   bool TaskOMP::PreProcessingImpl() {
     std::cout << "PreProcessingImpl: Initializing inputs and outputs...\n";
