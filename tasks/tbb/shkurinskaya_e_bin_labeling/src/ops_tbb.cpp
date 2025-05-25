@@ -19,11 +19,10 @@ void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_() {
 }
 
 bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PreProcessingImpl() {
-  input_ = std::vector<int>(task_data->inputs_count[0]);
   auto *tmp_ptr = reinterpret_cast<int *>(task_data->inputs[0]);
+  input_.assign(tmp_ptr, tmp_ptr + task_data->inputs_count[0]);
   width_ = reinterpret_cast<int *>(task_data->inputs[2])[0];
   height_ = reinterpret_cast<int *>(task_data->inputs[1])[0];
-  std::copy(tmp_ptr, tmp_ptr + task_data->inputs_count[0], input_.begin());
 
   int size = width_ * height_;
   res_.assign(size, 0);
