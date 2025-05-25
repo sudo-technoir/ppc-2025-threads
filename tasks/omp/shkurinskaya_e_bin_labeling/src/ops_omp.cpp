@@ -23,12 +23,6 @@ for (int idx = 0; idx < N; ++idx) {
             }
         }
     }
-  #pragma omp parallel for schedule(dynamic)
-for (int idx = 0; idx < N; ++idx) {
-    if (input_[idx] == 1) {
-        parent_[idx] = FindRoot(idx);
-    }
-}
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j) const {
@@ -108,15 +102,10 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::RunImpl() {
   ProcessUnion();
 
   // Третий этап
-#pragma omp parallel for
-  for (int i = 0; i < height_; ++i) {
-    for (int j = 0; j < width_; ++j) {
-      int index = (i * width_) + j;
-      if (input_[index] == 1) {
-        while (parent_[index] != parent_[parent_[index]]) {
-          parent_[index] = parent_[parent_[index]];
-        }
-      }
+  #pragma omp parallel for
+  for (int idx = 0; idx < N; ++idx) {
+    if (input_[idx] == 1) {
+      parent_[idx] = FindRoot(idx);
     }
   }
   std::cout << "[DEBUG] RunImpl: Processing completed\n";
