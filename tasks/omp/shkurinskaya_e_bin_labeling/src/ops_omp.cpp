@@ -25,6 +25,9 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::ProcessUnion() {
     }
   }
 
+  const int N = height_ * width_;
+  const int W = width_;
+
   bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j) const {
     return (i >= 0 && i < height_ && j >= 0 && j < width_);
   }
