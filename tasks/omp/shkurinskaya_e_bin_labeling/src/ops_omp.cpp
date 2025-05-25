@@ -9,7 +9,7 @@ namespace shkurinskaya_e_bin_labeling_omp {
 void TaskOMP::ProcessUnion() {
   const int N = height_ * width_;
   const int W = width_;
-  const int directions[8][2] = {{-1, 0},  {1, 0},  {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+  const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
 #pragma omp parallel for schedule(dynamic)
   for (int idx = 0; idx < N; ++idx) {
@@ -46,8 +46,7 @@ bool TaskOMP::PreProcessingImpl() {
 
 bool TaskOMP::ValidationImpl() {
   std::cout << "ValidationImpl: Validating input data...\n";
-  return task_data->inputs_count[0] > 1 &&
-         task_data->outputs_count[0] == task_data->inputs_count[0] &&
+  return task_data->inputs_count[0] > 1 && task_data->outputs_count[0] == task_data->inputs_count[0] &&
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
@@ -132,8 +131,6 @@ bool TaskOMP::PostProcessingImpl() {
   return true;
 }
 
-bool TaskOMP::IsValidIndex(int i, int j) const {
-  return (i >= 0 && i < height_ && j >= 0 && j < width_);
-}
+bool TaskOMP::IsValidIndex(int i, int j) const { return (i >= 0 && i < height_ && j >= 0 && j < width_); }
 
-} // namespace shkurinskaya_e_bin_labeling_omp
+}  // namespace shkurinskaya_e_bin_labeling_omp
