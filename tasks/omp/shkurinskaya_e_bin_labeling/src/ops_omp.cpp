@@ -94,17 +94,18 @@ void TaskOMP::UnionSets(int a, int b) {
 
 #pragma omp critical
   {
-    rootA = FindRoot(rootA);
-    rootB = FindRoot(rootB);
-    if (rootA == rootB) return;
-
-    if (rank_[rootA] < rank_[rootB]) {
-      parent_[rootA] = rootB;
-    } else if (rank_[rootA] > rank_[rootB]) {
-      parent_[rootB] = rootA;
-    } else {
-      parent_[rootB] = rootA;
-      ++rank_[rootA];
+    int rA = FindRoot(rootA);
+    int rB = FindRoot(rootB);
+    if (rA != rB) {
+      // Union by rank
+      if (rank_[rA] < rank_[rB]) {
+        parent_[rA] = rB;
+      } else if (rank_[rA] > rank_[rB]) {
+        parent_[rB] = rA;
+      } else {
+        parent_[rB] = rA;
+        ++rank_[rA];
+      }
     }
   }
 }
