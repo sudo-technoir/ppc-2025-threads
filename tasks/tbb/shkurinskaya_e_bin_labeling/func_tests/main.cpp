@@ -32,7 +32,7 @@ TEST(shkurinskaya_e_bin_labeling_tbb, empty_input) {
   ASSERT_EQ(task_tbb.Validation(), false);
 }
 
-TEST(shkurinskaya_e_bin_labeling_omp, empty_output) {
+TEST(shkurinskaya_e_bin_labeling_tbb, empty_output) {
   int height = 5000;
   int width = 5000;
   int size = width * height;
@@ -56,7 +56,7 @@ TEST(shkurinskaya_e_bin_labeling_omp, empty_output) {
   ASSERT_EQ(task_tbb.Validation(), false);
 }
 
-TEST(shkurinskaya_e_bin_labeling_omp, test_diag_object) {
+TEST(shkurinskaya_e_bin_labeling_tbb, test_diag_object) {
   int height = 100;
   int width = 100;
   int size = width * height;
@@ -88,7 +88,7 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_diag_object) {
   ASSERT_EQ(ans, out);
 }
 
-TEST(shkurinskaya_e_bin_labeling_omp, test_two_components) {
+TEST(shkurinskaya_e_bin_labeling_tbb, test_two_components) {
   int height = 100;
   int width = 100;
   int size = width * height;
@@ -120,7 +120,7 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_two_components) {
   ASSERT_EQ(ans, out);
 }
 
-TEST(shkurinskaya_e_bin_labeling_omp, test_horizontal_stripe) {
+TEST(shkurinskaya_e_bin_labeling_tbb, test_horizontal_stripe) {
   int height = 100;
   int width = 100;
   int size = width * height;
@@ -152,7 +152,7 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_horizontal_stripe) {
   ASSERT_EQ(ans, out);
 }
 
-TEST(shkurinskaya_e_bin_labeling_omp, test_vertical_stripe) {
+TEST(shkurinskaya_e_bin_labeling_tbb, test_vertical_stripe) {
   int height = 100;
   int width = 100;
   int size = width * height;
@@ -184,7 +184,7 @@ TEST(shkurinskaya_e_bin_labeling_omp, test_vertical_stripe) {
   ASSERT_EQ(ans, out);
 }
 
-TEST(shkurinskaya_e_bin_labeling_omp, test_horizontal_stripe_dif_size) {
+TEST(shkurinskaya_e_bin_labeling_tbb, test_horizontal_stripe_dif_size) {
   int height = 50;
   int width = 100;
   int size = width * height;
