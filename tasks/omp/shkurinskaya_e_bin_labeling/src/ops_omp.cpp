@@ -40,7 +40,11 @@ bool TaskOMP::PreProcessingImpl() {
   parent_.resize(N);
   rank_.resize(N);
   label_.assign(N, 0);
-
+  locks_.resize(N);
+  #pragma omp parallel for
+  for (int i = 0; i < size; ++i) {
+    omp_init_lock(&locks_[i]);
+  }
   return true;
 }
 
@@ -81,34 +85,42 @@ bool TaskOMP::RunImpl() {
 }
 
 inline int TaskOMP::FindRoot(int i) {
-  if (parent_[i] != i) {
-    parent_[i] = FindRoot(parent_[i]);
+  while (parent_[i] != i) {
+    i = parent_[i];
   }
-  return parent_[i];
+  return i;
 }
 
 void TaskOMP::UnionSets(int a, int b) {
   int rootA = FindRoot(a);
   int rootB = FindRoot(b);
-  if (rootA == rootB) return;
+  if (rootA == rootB || rootA < 0 || rootB < 0) return;
+  if (rootA > rootB) std::swap(rootA, rootB);
 
-#pragma omp critical
-  {
-    int rA = FindRoot(rootA);
-    int rB = FindRoot(rootB);
-    if (rA != rB) {
-      // Union by rank
-      if (rank_[rA] < rank_[rB]) {
-        parent_[rA] = rB;
-      } else if (rank_[rA] > rank_[rB]) {
-        parent_[rB] = rA;
-      } else {
-        parent_[rB] = rA;
-        ++rank_[rA];
-      }
-    }
+  omp_set_lock(&locks_[rootA]);
+  omp_set_lock(&locks_[rootB]);
+
+  int rA = FindRoot(rootA);
+  int rB = FindRoot(rootB);
+  if (rA == rB) {
+    omp_unset_lock(&locks_[rootB]);
+    omp_unset_lock(&locks_[rootA]);
+    return;
   }
+
+  if (rank_[rA] < rank_[rB]) {
+    parent_[rA] = rB;
+  } else if (rank_[rA] > rank_[rB]) {
+    parent_[rB] = rA;
+  } else {
+    parent_[rB] = rA;
+    rank_[rA]++;
+  }
+
+  omp_unset_lock(&locks_[rootB]);
+  omp_unset_lock(&locks_[rootA]);
 }
+
 
 bool TaskOMP::PostProcessingImpl() {
   std::cout << "PostProcessingImpl: Starting post-processing...\n";
