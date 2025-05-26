@@ -142,7 +142,7 @@ bool TaskOMP::PostProcessingImpl() {
   for (int i = 0; i < N; ++i) {
     omp_destroy_lock(&locks_[i]);
   }
-  
+
   std::copy(res_.begin(), res_.end(), reinterpret_cast<int *>(task_data->outputs[0]));
   return true;
 }
