@@ -42,7 +42,7 @@ bool TaskOMP::PreProcessingImpl() {
   label_.assign(N, 0);
   locks_.resize(N);
 #pragma omp parallel for
-  for (int i = 0; i < size; ++i) {
+  for (int i = 0; i < N; ++i) {
     omp_init_lock(&locks_[i]);
   }
   return true;
