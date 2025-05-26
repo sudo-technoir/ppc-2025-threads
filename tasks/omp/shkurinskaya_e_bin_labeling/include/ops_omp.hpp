@@ -1,9 +1,9 @@
 #pragma once
 
+#include <omp.h>
+
 #include <utility>
 #include <vector>
-
-#include <omp.h>
 
 #include "core/task/include/task.hpp"
 
