@@ -7,23 +7,22 @@
 namespace shkurinskaya_e_bin_labeling_omp {
 
 void TaskOMP::ProcessUnion() {
-  const int H = height_;
+  const int N = height_ * width_;
   const int W = width_;
   const int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
-#pragma omp parallel for collapse(2) schedule(dynamic)
-  for (int i = 0; i < H; ++i) {
-    for (int j = 0; j < W; ++j) {
-      int idx = i * W + j;
-      if (input_[idx] != 1) continue;
-      for (int d = 0; d < 8; ++d) {
-        int ni = i + directions[d][0];
-        int nj = j + directions[d][1];
-        if (ni < 0 || ni >= H || nj < 0 || nj >= W) continue;
-        int nidx = ni * W + nj;
-        if (input_[nidx] == 1) {
-          UnionSets(idx, nidx);
-        }
+#pragma omp parallel for schedule(dynamic)
+  for (int idx = 0; idx < N; ++idx) {
+    if (input_[idx] != 1) continue;
+    int x = idx % W;
+    int y = idx / W;
+    for (int d = 0; d < 8; ++d) {
+      int nx = x + directions[d][1];
+      int ny = y + directions[d][0];
+      if (!IsValidIndex(ny, nx)) continue;
+      int nidx = ny * W + nx;
+      if (input_[nidx] == 1) {
+        UnionSets(idx, nidx);
       }
     }
   }
@@ -32,8 +31,8 @@ void TaskOMP::ProcessUnion() {
 bool TaskOMP::PreProcessingImpl() {
   std::cout << "PreProcessingImpl: Initializing inputs and outputs...\n";
   auto *tmp_ptr = reinterpret_cast<int *>(task_data->inputs[0]);
-  width_ = reinterpret_cast<int *>(task_data->inputs[2])[0];
-  height_ = reinterpret_cast<int *>(task_data->inputs[1])[0];
+  width_ = reinterpret_cast<int *>(task_data->inputs[1])[0];
+  height_ = reinterpret_cast<int *>(task_data->inputs[2])[0];
   const int N = task_data->inputs_count[0];
 
   input_.assign(tmp_ptr, tmp_ptr + N);
@@ -82,10 +81,10 @@ bool TaskOMP::RunImpl() {
 }
 
 inline int TaskOMP::FindRoot(int i) {
-  while (parent_[i] != i) {
-    i = parent_[i];
+  if (parent_[i] != i) {
+    parent_[i] = FindRoot(parent_[i]);
   }
-  return i;
+  return parent_[i];
 }
 
 void TaskOMP::UnionSets(int a, int b) {
@@ -116,18 +115,19 @@ bool TaskOMP::PostProcessingImpl() {
   int comp = 1;
   const int N = height_ * width_;
 
-  std::fill(label_.begin(), label_.end(), 0);
-  for (int idx = 0; idx < N; ++idx) {
-    if (input_[idx] != 1) {
-      res_[idx] = 0;
-      continue;
+  for (int i = 0; i < N; ++i) {
+    if (parent_[i] < 0) continue;
+    // Находим корень (уже сжатый)
+    int root = parent_[i];
+    while (parent_[root] != root) {
+      root = parent_[root];
     }
-    int root = FindRoot(idx);
     if (label_[root] == 0) {
       label_[root] = comp++;
     }
-    res_[idx] = label_[root];
+    res_[i] = label_[root];
   }
+
   std::copy(res_.begin(), res_.end(), reinterpret_cast<int *>(task_data->outputs[0]));
   return true;
 }
