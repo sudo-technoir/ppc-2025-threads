@@ -41,7 +41,7 @@ bool TaskOMP::PreProcessingImpl() {
   rank_.resize(N);
   label_.assign(N, 0);
   locks_.resize(N);
- #pragma omp parallel for
+#pragma omp parallel for
   for (int i = 0; i < size; ++i) {
     omp_init_lock(&locks_[i]);
   }
@@ -139,7 +139,9 @@ bool TaskOMP::PostProcessingImpl() {
     res_[i] = label_[root];
   }
 
-  for (int i = 0; i < N; ++i) { omp_destroy_lock(&locks_[i]); }
+  for (int i = 0; i < N; ++i) {
+    omp_destroy_lock(&locks_[i]);
+  }
   
   std::copy(res_.begin(), res_.end(), reinterpret_cast<int *>(task_data->outputs[0]));
   return true;
