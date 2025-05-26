@@ -3,6 +3,8 @@
 #include <utility>
 #include <vector>
 
+#include <omp.h>
+
 #include "core/task/include/task.hpp"
 
 namespace shkurinskaya_e_bin_labeling_omp {
