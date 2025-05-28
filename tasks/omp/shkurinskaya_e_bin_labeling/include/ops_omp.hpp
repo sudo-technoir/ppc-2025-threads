@@ -18,7 +18,7 @@ class TaskOMP : public ppc::core::Task {
  private:
   int width_, height_;
   std::vector<int> input_;
-  std::vector<uint8_t> res_;
+  std::vector<int> res_;
   std::vector<int> parent_;
   std::vector<int> label_;
   std::vector<int> rank_;
