@@ -1,7 +1,5 @@
 #pragma once
 
-#include <omp.h>
-
 #include <utility>
 #include <vector>
 
@@ -20,17 +18,14 @@ class TaskOMP : public ppc::core::Task {
  private:
   int width_, height_;
   std::vector<int> input_;
-  std::vector<int> res_;
+  std::vector<uint8_t> res_;
   std::vector<int> parent_;
   std::vector<int> label_;
   std::vector<int> rank_;
-  std::vector<omp_lock_t> locks_;
   void UnionSets(int index_a, int index_b);
   int FindRoot(int index);
   [[nodiscard]] bool IsValidIndex(int i, int j) const;
   void ProcessUnion();
-  void ParallelCollectPairs_(std::vector<std::pair<size_t, size_t>>& pairs);
-  void CompressPathsSequential_();
 };
 
 }  // namespace shkurinskaya_e_bin_labeling_omp
