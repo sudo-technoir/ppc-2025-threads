@@ -136,7 +136,7 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PostProcessingImpl() {
         label_[parent_[root]] = comp++;
       }
       res_[index] = label_[parent_[root]];
-      std::cout << "res_[index] = " << res_[index] << "\n";
+      std::cout << "res " << index << " = " << res_[index] << "\n";
     }
   }
   std::ranges::copy(res_.begin(), res_.end(), reinterpret_cast<int*>(task_data->outputs[0]));
