@@ -45,8 +45,7 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int a, int b) {
       rootB = FindRoot(rootB);
       if (rootA != rootB) {
         // Выполняем union by rank
-        if (rank_[rootA] < rank_[rootB])
-          std::swap(rootA, rootB);
+        if (rank_[rootA] < rank_[rootB]) std::swap(rootA, rootB);
         parent_[rootB] = rootA;
         if (rank_[rootA] == rank_[rootB]) {
           rank_[rootA]++;
@@ -57,16 +56,16 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int a, int b) {
 }
 
 int shkurinskaya_e_bin_labeling_omp::TaskOMP::FindRoot(int v) {
-    int p;
-    #pragma omp atomic read
-    p = parent_[v];
-    if (p != v) {
-        int root = FindRoot(p);
-        #pragma omp atomic write
-        parent_[v] = root;
-        return root;
-    }
-    return v;
+  int p;
+#pragma omp atomic read
+  p = parent_[v];
+  if (p != v) {
+    int root = FindRoot(p);
+#pragma omp atomic write
+    parent_[v] = root;
+    return root;
+  }
+  return v;
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PreProcessingImpl() {
