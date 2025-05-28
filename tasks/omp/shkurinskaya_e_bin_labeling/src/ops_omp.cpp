@@ -139,6 +139,6 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PostProcessingImpl() {
       std::cout << "res_[index] = " << res_[index] << "\n";
     }
   }
-  std::ranges::copy(res_.begin(), res_.end(), reinterpret_cast<uint8_t*>(task_data->outputs[0]));
+  std::ranges::copy(res_.begin(), res_.end(), reinterpret_cast<int*>(task_data->outputs[0]));
   return true;
 }
