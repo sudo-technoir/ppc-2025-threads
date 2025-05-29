@@ -38,14 +38,18 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j) const 
 void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int a, int b) {
   int rootA = FindRoot(a);
   int rootB = FindRoot(b);
-
   if (rootA != rootB) {
 #pragma omp critical(union_lock)
     {
-      if (rank_[rootA] < rank_[rootB]) std::swap(rootA, rootB);
-      parent_[rootB] = rootA;
-      if (rank_[rootA] == rank_[rootB]) {
-        rank_[rootA]++;
+      // Повторная проверка после входа в критическую секцию
+      rootA = FindRoot(rootA);
+      rootB = FindRoot(rootB);
+      if (rootA != rootB) {
+        if (rank_[rootA] < rank_[rootB]) std::swap(rootA, rootB);
+        parent_[rootB] = rootA;
+        if (rank_[rootA] == rank_[rootB]) {
+          rank_[rootA]++;
+        }
       }
     }
   }
@@ -154,7 +158,7 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PostProcessingImpl() {
         label_[parent_[root]] = comp++;
       }
       res_[index] = label_[parent_[root]];
-      // std::cout << "res " << index << " = " << res_[index] << "\n";
+      std::cout << "res " << index << " = " << res_[index] << "\n";
     }
   }
   std::ranges::copy(res_.begin(), res_.end(), reinterpret_cast<int*>(task_data->outputs[0]));
