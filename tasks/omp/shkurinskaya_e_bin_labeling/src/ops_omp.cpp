@@ -45,8 +45,7 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int a, int b) {
       rootA = FindRoot(rootA);
       rootB = FindRoot(rootB);
       if (rootA != rootB) {
-        if (rank_[rootA] < rank_[rootB])
-          std::swap(rootA, rootB);
+        if (rank_[rootA] < rank_[rootB]) std::swap(rootA, rootB);
         parent_[rootB] = rootA;
         if (rank_[rootA] == rank_[rootB]) {
           rank_[rootA]++;
