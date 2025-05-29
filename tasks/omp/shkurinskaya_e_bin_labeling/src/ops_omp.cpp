@@ -39,13 +39,14 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int a, int b) {
   int rootA = FindRoot(a);
   int rootB = FindRoot(b);
   if (rootA != rootB) {
-#pragma omp critical
+#pragma omp critical(union_lock)
     {
+      // Повторная проверка после входа в критическую секцию
       rootA = FindRoot(rootA);
       rootB = FindRoot(rootB);
       if (rootA != rootB) {
-        // Выполняем union by rank
-        if (rank_[rootA] < rank_[rootB]) std::swap(rootA, rootB);
+        if (rank_[rootA] < rank_[rootB])
+          std::swap(rootA, rootB);
         parent_[rootB] = rootA;
         if (rank_[rootA] == rank_[rootB]) {
           rank_[rootA]++;
@@ -55,17 +56,30 @@ void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int a, int b) {
   }
 }
 
-int shkurinskaya_e_bin_labeling_omp::TaskOMP::FindRoot(int v) {
-  int p;
-#pragma omp atomic read
-  p = parent_[v];
-  if (p != v) {
-    int root = FindRoot(p);
-#pragma omp atomic write
-    parent_[v] = root;
-    return root;
+int shkurinskaya_e_bin_labeling_omp::TaskOMP::TaskOMP::FindRoot(int v) {
+  // 1) Найти корень
+  int u = v;
+  while (true) {
+    int p;
+#pragma omp critical(find_lock)
+    p = parent_[u];
+    if (p == u) break;
+    u = p;
   }
-  return v;
+  int root = u;
+
+  // 2) Сжать путь
+  u = v;
+  while (true) {
+    int p;
+#pragma omp critical(find_lock)
+    p = parent_[u];
+    if (p == root) break;
+#pragma omp critical(find_lock)
+    parent_[u] = root;
+    u = p;
+  }
+  return root;
 }
 
 bool shkurinskaya_e_bin_labeling_omp::TaskOMP::PreProcessingImpl() {
