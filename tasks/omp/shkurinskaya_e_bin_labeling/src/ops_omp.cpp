@@ -35,21 +35,17 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j) const 
   return (i >= 0 && i < height_ && j >= 0 && j < width_);
 }
 
-void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int a, int b) {
+void TaskOMP::UnionSets(int a, int b) {
   int rootA = FindRoot(a);
   int rootB = FindRoot(b);
+
   if (rootA != rootB) {
 #pragma omp critical(union_lock)
     {
-      // Повторная проверка после входа в критическую секцию
-      rootA = FindRoot(rootA);
-      rootB = FindRoot(rootB);
-      if (rootA != rootB) {
-        if (rank_[rootA] < rank_[rootB]) std::swap(rootA, rootB);
-        parent_[rootB] = rootA;
-        if (rank_[rootA] == rank_[rootB]) {
-          rank_[rootA]++;
-        }
+      if (rank_[rootA] < rank_[rootB]) std::swap(rootA, rootB);
+      parent_[rootB] = rootA;
+      if (rank_[rootA] == rank_[rootB]) {
+        rank_[rootA]++;
       }
     }
   }
