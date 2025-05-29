@@ -35,7 +35,7 @@ bool shkurinskaya_e_bin_labeling_omp::TaskOMP::IsValidIndex(int i, int j) const 
   return (i >= 0 && i < height_ && j >= 0 && j < width_);
 }
 
-void TaskOMP::UnionSets(int a, int b) {
+void shkurinskaya_e_bin_labeling_omp::TaskOMP::UnionSets(int a, int b) {
   int rootA = FindRoot(a);
   int rootB = FindRoot(b);
 
