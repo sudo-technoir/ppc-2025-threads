@@ -22,6 +22,8 @@ class TaskOMP : public ppc::core::Task {
   std::vector<int> parent_;
   std::vector<int> label_;
   std::vector<int> rank_;
+  std::vector<int> tmp_labels_;
+  std::vector<std::pair<int, int>> equiv_pairs_;
   void UnionSets(int index_a, int index_b);
   int FindRoot(int index);
   [[nodiscard]] bool IsValidIndex(int i, int j) const;
