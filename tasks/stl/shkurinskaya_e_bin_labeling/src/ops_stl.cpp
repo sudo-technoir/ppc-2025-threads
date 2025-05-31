@@ -188,8 +188,7 @@ bool TaskSTL::RunImpl() {
 
     for (int t = 0; t < T; ++t) {
       auto [row_start, row_end] = compute_ranges(t);
-      threads.emplace_back(&TaskSTL::CompressPathsRange, this, row_start,
-                           row_end);
+      threads.emplace_back(&TaskSTL::CompressPathsRange, this, row_start, row_end);
     }
     for (auto &th : threads) {
       th.join();
