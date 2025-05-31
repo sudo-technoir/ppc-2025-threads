@@ -6,112 +6,179 @@
 #include <algorithm>
 #include <climits>
 #include <vector>
+namespace shkurinskaya_e_bin_labeling_tbb {
 
-bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::ValidationImpl() {
-  return task_data->inputs_count[0] > 1 && task_data->outputs_count[0] == task_data->inputs_count[0] &&
+bool TaskTBB::ValidationImpl() {
+
+  return task_data->inputs_count[0] > 1 &&
+         task_data->outputs_count[0] == task_data->inputs_count[0] &&
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
-void shkurinskaya_e_bin_labeling_tbb::TaskTBB::CompressPathsSequential_() {
-  size_t total = static_cast<size_t>(width_) * height_;
-  for (size_t i = 0; i < total; ++i)
-    if (input_[i]) parent_[i] = FindRoot(static_cast<int>(i));
-}
+bool TaskTBB::PreProcessingImpl() {
 
-bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PreProcessingImpl() {
-  auto *tmp_ptr = reinterpret_cast<int *>(task_data->inputs[0]);
-  input_.assign(tmp_ptr, tmp_ptr + task_data->inputs_count[0]);
-  width_ = reinterpret_cast<int *>(task_data->inputs[2])[0];
-  height_ = reinterpret_cast<int *>(task_data->inputs[1])[0];
+  const int total_size = task_data->inputs_count[0];
+  auto *in_ptr = reinterpret_cast<int *>(task_data->inputs[0]);
+  input_ = std::vector<int>(in_ptr, in_ptr + total_size);
 
-  int size = width_ * height_;
-  res_.assign(size, 0);
-  parent_.assign(size, -1);
-  rank_.assign(size, 0);
-  label_.assign(size, 0);
+  width_ = reinterpret_cast<int *>(task_data->inputs[1])[0];
+  height_ = reinterpret_cast<int *>(task_data->inputs[2])[0];
+
+  res_.resize(total_size);
+  parent_.resize(total_size);
+  rank_.resize(total_size);
+  label_.resize(total_size);
   return true;
 }
 
-int shkurinskaya_e_bin_labeling_tbb::TaskTBB::FindRoot(int index) {
-  while (parent_[index] != index) {
-    index = parent_[index];
-  }
-  return index;
+bool TaskTBB::RunImpl() {
+  const int W = width_;
+  const int H = height_;
+  const int N = W * H;
+
+  tbb::parallel_for(tbb::blocked_range<int>(0, H),
+                    [&](const tbb::blocked_range<int> &rows) {
+                      for (int i = rows.begin(); i < rows.end(); ++i) {
+                        int base = i * W;
+                        for (int j = 0; j < W; ++j) {
+                          int idx = base + j;
+                          if (input_[idx] == 1) {
+                            parent_[idx] = idx;
+                            rank_[idx] = 0;
+                          } else {
+                            parent_[idx] = -1;
+                          }
+                        }
+                      }
+                    });
+
+  ProcessUnion();
+
+  tbb::parallel_for(tbb::blocked_range<int>(0, H),
+                    [&](const tbb::blocked_range<int> &rows) {
+                      for (int i = rows.begin(); i < rows.end(); ++i) {
+                        int base = i * W;
+                        for (int j = 0; j < W; ++j) {
+                          int idx = base + j;
+                          if (input_[idx] == 1) {
+                            while (true) {
+                              int p = parent_[idx];
+                              if (p < 0)
+                                break;
+                              int gp = parent_[p];
+                              if (gp < 0)
+                                break;
+                              if (p == gp)
+                                break;
+                              parent_[idx] = gp;
+                            }
+                          }
+                        }
+                      }
+                    });
+
+  return true;
 }
 
-void shkurinskaya_e_bin_labeling_tbb::TaskTBB::UnionSets(int a, int b) {
-  std::lock_guard<std::mutex> lock(union_mutex_);
-  int root_a = FindRoot(a);
-  int root_b = FindRoot(b);
-  if (root_a == root_b) return;
+void TaskTBB::ProcessUnion() {
+  const int W = width_;
+  const int H = height_;
+  static constexpr int dirs[8][2] = {{-1, 0},  {1, 0},  {0, -1}, {0, 1},
+                                     {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
-  if (rank_[root_a] < rank_[root_b]) {
-    parent_[root_a] = root_b;
-  } else if (rank_[root_a] > rank_[root_b]) {
-    parent_[root_b] = root_a;
-  } else {
-    parent_[root_b] = root_a;
-    rank_[root_a]++;
+  tbb::parallel_for(tbb::blocked_range<int>(0, H),
+                    [&](const tbb::blocked_range<int> &rows) {
+                      for (int i = rows.begin(); i < rows.end(); ++i) {
+                        int base = i * W;
+                        for (int j = 0; j < W; ++j) {
+                          int idx = base + j;
+                          if (input_[idx] != 1)
+                            continue;
+                          for (int d = 0; d < 8; ++d) {
+                            int ni = i + dirs[d][0];
+                            int nj = j + dirs[d][1];
+                            if (!IsValidIndex(ni, nj))
+                              continue;
+                            int nidx = ni * W + nj;
+                            if (input_[nidx] == 1) {
+                              UnionSets(idx, nidx);
+                            }
+                          }
+                        }
+                      }
+                    });
+}
+
+void TaskTBB::UnionSets(int idx_a, int idx_b) {
+  int rootA = FindRoot(idx_a);
+  int rootB = FindRoot(idx_b);
+  if (rootA == rootB || rootA < 0 || rootB < 0)
+    return;
+
+  tbb::spin_mutex::scoped_lock lock(uf_mutex_);
+
+  rootA = FindRoot(rootA);
+  rootB = FindRoot(rootB);
+  if (rootA == rootB)
+    return;
+
+  if (rank_[rootA] < rank_[rootB]) {
+    std::swap(rootA, rootB);
+  }
+  parent_[rootB] = rootA;
+  if (rank_[rootA] == rank_[rootB]) {
+    rank_[rootA]++;
   }
 }
 
-bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::RunImpl() {
-  const int H = height_, W = width_;
+int TaskTBB::FindRoot(int v) {
+  int p = parent_[v];
+  if (p < 0)
+    return -1;
+  if (p == v)
+    return v;
+  int root = FindRoot(p);
+  parent_[v] = root;
+  return root;
+}
 
-  // I. Инициализация множества
-  tbb::parallel_for(0, H, [&](int i) {
+bool TaskTBB::IsValidIndex(int i, int j) const {
+  return (i >= 0 && i < height_ && j >= 0 && j < width_);
+}
+
+bool TaskTBB::PostProcessingImpl() {
+  const int W = width_;
+  const int H = height_;
+  const int N = W * H;
+
+  std::fill(label_.begin(), label_.end(), 0);
+
+  int comp = 1;
+
+  for (int i = 0; i < H; ++i) {
     int base = i * W;
     for (int j = 0; j < W; ++j) {
       int idx = base + j;
-      if (input_[idx] == 1) {
-        parent_[idx] = idx;
-        rank_[idx] = 0;
-      } else {
-        parent_[idx] = -1;
+      if (parent_[idx] < 0) {
+
+        res_[idx] = 0;
+        continue;
       }
-    }
-  });
 
-  // II. Параллельное объединение по 8-ми соседям
-  static const int dirs[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
-  tbb::parallel_for(tbb::blocked_range2d<int>(0, H, 0, W), [&](auto const &br) {
-    for (int i = br.rows().begin(); i != br.rows().end(); ++i) {
-      int base = i * W;
-      for (int j = br.cols().begin(); j != br.cols().end(); ++j) {
-        int idx = base + j;
-        if (input_[idx] != 1) continue;
-        for (auto &d : dirs) {
-          int ni = i + d[0], nj = j + d[1];
-          if (ni < 0 || ni >= H || nj < 0 || nj >= W) continue;
-          int neighbor_idx = ni * W + nj;
-          if (input_[neighbor_idx] != 1) continue;
-          UnionSets(idx, neighbor_idx);
-        }
+      int root = idx;
+      while (parent_[root] != root) {
+        root = parent_[root];
       }
-    }
-  });
 
-  // III. Сжатие путей (последовательное)
-  CompressPathsSequential_();
-
-  return true;
-}
-
-bool shkurinskaya_e_bin_labeling_tbb::TaskTBB::PostProcessingImpl() {
-  const int N = height_ * width_;
-  int comp = 1;
-  std::fill(label_.begin(), label_.end(), 0);
-  for (int idx = 0; idx < N; ++idx) {
-    if (parent_[idx] < 0) {
-      res_[idx] = 0;
-      continue;
+      if (label_[root] == 0) {
+        label_[root] = comp++;
+      }
+      res_[idx] = label_[root];
     }
-    int root = FindRoot(idx);
-    if (label_[root] == 0) {
-      label_[root] = comp++;
-    }
-    res_[idx] = label_[root];
   }
-  std::copy(res_.begin(), res_.end(), reinterpret_cast<int *>(task_data->outputs[0]));
+  int *out_ptr = reinterpret_cast<int *>(task_data->outputs[0]);
+  std::ranges::copy(res_.begin(), res_.end(), out_ptr);
   return true;
 }
+
+} // namespace shkurinskaya_e_bin_labeling_tbb
