@@ -84,7 +84,6 @@ void TaskTBB::ProcessUnion() {
     for (int j = 0; j < W; ++j) {
       int idx = base + j;
       if (input_[idx] != 1) continue;
-      
       // 1. Вправо
       if (j + 1 < W && input_[idx + 1] == 1) {
         allPairs.emplace_back(idx, idx + 1);
