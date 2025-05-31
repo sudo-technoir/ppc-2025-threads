@@ -111,25 +111,25 @@ bool TaskSTL::RunImpl() {
 
   // 1) Parallel InitializeUFRange по строкам
   {
-    const int num_threads = NumThreads() > 0 ? NumThreads() : 1;
-    const int T = num_threads;
+    int num_threads = NumThreads() > 0 ? NumThreads() : 1;
+    int T = num_threads;
     auto compute_row_range = [&](int t) {
       int start = (H * t) / T;
       int end = (H * (t + 1)) / T;
       return std::pair<int, int>(start, end);
     };
-
     std::vector<std::thread> threads;
     threads.reserve(T);
     for (int t = 0; t < T; ++t) {
-      auto [r0, r1] = compute_row_range(t);
+      auto tmp = compute_row_range(t);
+      int r0 = tmp.first;
+      int r1 = tmp.second;
       threads.emplace_back(&TaskSTL::InitializeUFRange, this, r0, r1);
     }
     for (auto &th : threads) th.join();
   }
 
-  // 2) Собираем весь список смежных пар 1–1 в один вектор allPairs
-  // (single-thread)
+  // 2) Собираем весь список смежных пар «1–1» в allPairs (single-thread)
   std::vector<std::pair<int, int>> allPairs;
   allPairs.reserve((size_t)H * W / 2);
   for (int i = 0; i < H; ++i) {
@@ -167,11 +167,10 @@ bool TaskSTL::RunImpl() {
 
   // 3) Parallel UnionSets по allPairs
   {
-    const int num_threads = NumThreads() > 0 ? NumThreads() : 1;
-    const int T = num_threads;
-    const size_t M = allPairs.size();
+    int num_threads = NumThreads() > 0 ? NumThreads() : 1;
+    int T = num_threads;
+    size_t M = allPairs.size();
 
-    // разбиваем allPairs на T примерно равных по размеру участков
     auto compute_pair_range = [&](int t) {
       size_t start = (M * t) / T;
       size_t end = (M * (t + 1)) / T;
@@ -181,7 +180,9 @@ bool TaskSTL::RunImpl() {
     std::vector<std::thread> threads;
     threads.reserve(T);
     for (int t = 0; t < T; ++t) {
-      auto [b, e] = compute_pair_range(t);
+      auto tmp = compute_pair_range(t);
+      size_t b = tmp.first;
+      size_t e = tmp.second;
       threads.emplace_back([&, b, e]() {
         for (size_t z = b; z < e; ++z) {
           const auto &pr = allPairs[z];
@@ -194,8 +195,8 @@ bool TaskSTL::RunImpl() {
 
   // 4) Parallel CompressPathsRange по строкам
   {
-    const int num_threads = NumThreads() > 0 ? NumThreads() : 1;
-    const int T = num_threads;
+    int num_threads = NumThreads() > 0 ? NumThreads() : 1;
+    int T = num_threads;
     auto compute_row_range = [&](int t) {
       int start = (H * t) / T;
       int end = (H * (t + 1)) / T;
@@ -205,7 +206,9 @@ bool TaskSTL::RunImpl() {
     std::vector<std::thread> threads;
     threads.reserve(T);
     for (int t = 0; t < T; ++t) {
-      auto [r0, r1] = compute_row_range(t);
+      auto tmp = compute_row_range(t);
+      int r0 = tmp.first;
+      int r1 = tmp.second;
       threads.emplace_back(&TaskSTL::CompressPathsRange, this, r0, r1);
     }
     for (auto &th : threads) th.join();
