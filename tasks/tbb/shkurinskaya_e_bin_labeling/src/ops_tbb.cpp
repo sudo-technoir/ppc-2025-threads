@@ -117,11 +117,21 @@ void TaskTBB::UnionSets(int idx_a, int idx_b) {
 }
 
 int TaskTBB::FindRoot(int v) {
-  int p = parent_[v];
-  if (p < 0) return -1;
-  if (p == v) return v;
-  int root = FindRoot(p);
-  parent_[v] = root;
+  int u = v;
+  while (true) {
+    int p = parent_[u];
+    if (p < 0 || p == u) break;
+    u = p;
+  }
+  if (u < 0) return -1;
+  int root = u;
+  u = v;
+  while (true) {
+    int p = parent_[u];
+    if (p < 0 || p == root) break;
+    parent_[u] = root;
+    u = p;
+  }
   return root;
 }
 
