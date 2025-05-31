@@ -163,8 +163,7 @@ bool TaskSTL::RunImpl() {
       auto [r0, r1] = compute_row_range(t);
       threads.emplace_back(&TaskSTL::InitializeUFRange, this, r0, r1);
     }
-    for (auto &th : threads)
-      th.join();
+    for (auto &th : threads) th.join();
   }
 
   // 2) Собираем весь список смежных пар 1–1 в один вектор allPairs
@@ -175,8 +174,7 @@ bool TaskSTL::RunImpl() {
     int base_idx = i * W;
     for (int j = 0; j < W; ++j) {
       int idx = base_idx + j;
-      if (input_[idx] != 1)
-        continue;
+      if (input_[idx] != 1) continue;
       // 2.1) вправо
       if (j + 1 < W && input_[idx + 1] == 1) {
         allPairs.emplace_back(idx, idx + 1);
@@ -229,8 +227,7 @@ bool TaskSTL::RunImpl() {
         }
       });
     }
-    for (auto &th : threads)
-      th.join();
+    for (auto &th : threads) th.join();
   }
 
   // 4) Parallel CompressPathsRange по строкам
@@ -249,8 +246,7 @@ bool TaskSTL::RunImpl() {
       auto [r0, r1] = compute_row_range(t);
       threads.emplace_back(&TaskSTL::CompressPathsRange, this, r0, r1);
     }
-    for (auto &th : threads)
-      th.join();
+    for (auto &th : threads) th.join();
   }
 
   return true;
