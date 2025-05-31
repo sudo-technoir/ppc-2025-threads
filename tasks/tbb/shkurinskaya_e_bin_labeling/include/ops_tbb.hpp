@@ -1,6 +1,8 @@
 #pragma once
 
-#include <tbb/concurrent_vector.h>
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
+#include <tbb/spin_mutex.h>
 
 #include <utility>
 #include <vector>
@@ -25,11 +27,12 @@ class TaskTBB : public ppc::core::Task {
   std::vector<int> parent_;
   std::vector<int> rank_;
   std::vector<int> label_;
-  std::mutex union_mutex_;
+  tbb::spin_mutex uf_mutex_;
 
   int FindRoot(int index);
   void UnionSets(int a, int b);
-  void CompressPathsSequential_();
+  [[nodiscard]] bool IsValidIndex(int i, int j) const;
+  void ProcessUnion();
 };
 
 }  // namespace shkurinskaya_e_bin_labeling_tbb
