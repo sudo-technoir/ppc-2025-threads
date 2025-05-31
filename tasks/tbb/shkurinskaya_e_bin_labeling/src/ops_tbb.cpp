@@ -74,7 +74,6 @@ bool TaskTBB::RunImpl() {
 void TaskTBB::ProcessUnion() {
   const int W = width_;
   const int H = height_;
-  static constexpr int dirs[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
   // 1) Собираем все пары соседних 1–1 пикселей (последовательно):
   std::vector<std::pair<int, int>> allPairs;
   allPairs.reserve(H * W / 2);  // грубая оценка; можно чуть больше или меньше
