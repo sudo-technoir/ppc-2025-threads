@@ -1,9 +1,9 @@
 #pragma once
 
-#include <utility>
-#include <vector>
 #include <thread>
 #include <mutex>
+#include <utility>
+#include <vector>
 
 #include "core/task/include/task.hpp"
 
@@ -29,9 +29,9 @@ class TaskSTL : public ppc::core::Task {
   std::vector<int> label_;
   std::mutex uf_mutex_;
 
-  int  FindRoot(int v);
+  int FindRoot(int v);
   void UnionSets(int a, int b);
-  [[nodiscard]]bool IsValidIndex(int i, int j) const;
+  [[nodiscard]] bool IsValidIndex(int i, int j) const;
   void ProcessUnion();
 
   int NumThreads() const { return ppc::util::GetPPCNumThreads(); }
