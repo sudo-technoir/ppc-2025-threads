@@ -29,10 +29,11 @@ class TaskSTL : public ppc::core::Task {
   std::vector<int> label_;
   std::mutex uf_mutex_;
 
-  int FindRoot(int v);
+  int FindRoot(int index);
   void UnionSets(int a, int b);
-  [[nodiscard]] bool IsValidIndex(int i, int j) const;
-  void ProcessUnion();
+  void InitializeUFRange(int row_start, int row_end);
+  void ProcessUnionRange(int row_start, int row_end);
+  void CompressPathsRange(int row_start, int row_end);
 
   int NumThreads() const { return ppc::util::GetPPCNumThreads(); }
 };
