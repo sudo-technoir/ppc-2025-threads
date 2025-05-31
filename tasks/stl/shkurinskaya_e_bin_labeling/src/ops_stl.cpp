@@ -11,8 +11,7 @@
 namespace shkurinskaya_e_bin_labeling_stl {
 
 bool TaskSTL::ValidationImpl() {
-  return task_data->inputs_count[0] > 1 &&
-         task_data->outputs_count[0] == task_data->inputs_count[0] &&
+  return task_data->inputs_count[0] > 1 && task_data->outputs_count[0] == task_data->inputs_count[0] &&
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
@@ -36,18 +35,15 @@ int TaskSTL::FindRoot(int v) {
   int u = v;
   while (true) {
     int p = parent_[u];
-    if (p < 0 || p == u)
-      break;
+    if (p < 0 || p == u) break;
     u = p;
   }
-  if (u < 0)
-    return -1;
+  if (u < 0) return -1;
   int root = u;
   u = v;
   while (true) {
     int p = parent_[u];
-    if (p < 0 || p == root)
-      break;
+    if (p < 0 || p == root) break;
     parent_[u] = root;
     u = p;
   }
@@ -57,15 +53,13 @@ int TaskSTL::FindRoot(int v) {
 void TaskSTL::UnionSets(int idx_a, int idx_b) {
   int rootA = FindRoot(idx_a);
   int rootB = FindRoot(idx_b);
-  if (rootA == rootB || rootA < 0 || rootB < 0)
-    return;
+  if (rootA == rootB || rootA < 0 || rootB < 0) return;
 
   std::lock_guard<std::mutex> lock(uf_mutex_);
 
   rootA = FindRoot(rootA);
   rootB = FindRoot(rootB);
-  if (rootA == rootB)
-    return;
+  if (rootA == rootB) return;
 
   if (rank_[rootA] < rank_[rootB]) {
     std::swap(rootA, rootB);
@@ -100,9 +94,7 @@ void TaskSTL::ProcessUnionRange(int row_start, int row_end) {
     int base_idx = i * W;
     for (int j = 0; j < W; ++j) {
       int idx = base_idx + j;
-      if (input_[idx] != 1)
-        continue;
-
+      if (input_[idx] != 1) continue;
       // 1) Вправо
       if (j + 1 < W && input_[idx + 1] == 1) {
         UnionSets(idx, idx + 1);
@@ -141,11 +133,9 @@ void TaskSTL::CompressPathsRange(int row_start, int row_end) {
       if (input_[idx] == 1) {
         while (true) {
           int p = parent_[idx];
-          if (p < 0)
-            break;
+          if (p < 0) break;
           int gp = parent_[p];
-          if (gp < 0 || p == gp)
-            break;
+          if (gp < 0 || p == gp) break;
           parent_[idx] = gp;
         }
       }
@@ -156,7 +146,6 @@ void TaskSTL::CompressPathsRange(int row_start, int row_end) {
 bool TaskSTL::RunImpl() {
   const int W = width_;
   const int H = height_;
-  const int total_size = W * H;
 
   const int num_threads = ppc::util::GetPPCNumThreads();
   const int T = (num_threads > 0 ? num_threads : 1);
@@ -173,8 +162,7 @@ bool TaskSTL::RunImpl() {
 
     for (int t = 0; t < T; ++t) {
       auto [row_start, row_end] = compute_ranges(t);
-      threads.emplace_back(&TaskSTL::InitializeUFRange, this, row_start,
-                           row_end);
+      threads.emplace_back(&TaskSTL::InitializeUFRange, this, row_start, row_end);
     }
     for (auto &th : threads) {
       th.join();
@@ -187,8 +175,7 @@ bool TaskSTL::RunImpl() {
 
     for (int t = 0; t < T; ++t) {
       auto [row_start, row_end] = compute_ranges(t);
-      threads.emplace_back(&TaskSTL::ProcessUnionRange, this, row_start,
-                           row_end);
+      threads.emplace_back(&TaskSTL::ProcessUnionRange, this, row_start, row_end);
     }
     for (auto &th : threads) {
       th.join();
@@ -215,7 +202,6 @@ bool TaskSTL::RunImpl() {
 bool TaskSTL::PostProcessingImpl() {
   const int W = width_;
   const int H = height_;
-  const int total_size = W * H;
 
   std::fill(label_.begin(), label_.end(), 0);
   int comp = 1;
@@ -246,4 +232,4 @@ bool TaskSTL::PostProcessingImpl() {
   return true;
 }
 
-} // namespace shkurinskaya_e_bin_labeling_stl
+}  // namespace shkurinskaya_e_bin_labeling_stl
