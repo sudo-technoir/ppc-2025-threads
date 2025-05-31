@@ -144,7 +144,6 @@ void TaskSTL::CompressPathsRange(int row_start, int row_end) {
 }
 
 bool TaskSTL::RunImpl() {
-  const int W = width_;
   const int H = height_;
 
   const int num_threads = ppc::util::GetPPCNumThreads();
