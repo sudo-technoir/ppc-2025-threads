@@ -33,7 +33,7 @@ class TaskSTL : public ppc::core::Task {
   int FindRoot(int index);
   void UnionSets(int a, int b);
   void InitializeUFRange(int row_start, int row_end);
-  void ProcessUnionRange(int row_start, int row_end);
+  [[nodiscard]] void ProcessUnionRange(int row_start, int row_end);
   void CompressPathsRange(int row_start, int row_end);
 
   int NumThreads() const { return ppc::util::GetPPCNumThreads(); }
