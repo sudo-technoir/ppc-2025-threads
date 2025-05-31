@@ -86,44 +86,6 @@ void TaskSTL::InitializeUFRange(int row_start, int row_end) {
   }
 }
 
-void TaskSTL::ProcessUnionRange(int row_start, int row_end) {
-  const int W = width_;
-  const int H = height_;
-
-  for (int i = row_start; i < row_end; ++i) {
-    int base_idx = i * W;
-    for (int j = 0; j < W; ++j) {
-      int idx = base_idx + j;
-      if (input_[idx] != 1) continue;
-      // 1) Вправо
-      if (j + 1 < W && input_[idx + 1] == 1) {
-        UnionSets(idx, idx + 1);
-      }
-      // 2) Вниз
-      if (i + 1 < H) {
-        int idx_down = (i + 1) * W + j;
-        if (input_[idx_down] == 1) {
-          UnionSets(idx, idx_down);
-        }
-      }
-      // 3) Вниз-вправо (диагональ)
-      if (i + 1 < H && j + 1 < W) {
-        int idx_dr = (i + 1) * W + (j + 1);
-        if (input_[idx_dr] == 1) {
-          UnionSets(idx, idx_dr);
-        }
-      }
-      // 4) Вниз-влево (диагональ)
-      if (i + 1 < H && j > 0) {
-        int idx_dl = (i + 1) * W + (j - 1);
-        if (input_[idx_dl] == 1) {
-          UnionSets(idx, idx_dl);
-        }
-      }
-    }
-  }
-}
-
 void TaskSTL::CompressPathsRange(int row_start, int row_end) {
   const int W = width_;
   for (int i = row_start; i < row_end; ++i) {
