@@ -74,8 +74,7 @@ bool TaskTBB::RunImpl() {
 void TaskTBB::ProcessUnion() {
   const int W = width_;
   const int H = height_;
-  static constexpr int dirs[8][2] = { {-1,  0}, {1, 0}, {0, -1}, {0, 1},{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
-
+  static constexpr int dirs[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
   // 1) Собираем все пары соседних 1–1 пикселей (последовательно):
   std::vector<std::pair<int, int>> allPairs;
   allPairs.reserve(H * W / 2);  // грубая оценка; можно чуть больше или меньше
@@ -106,17 +105,13 @@ void TaskTBB::ProcessUnion() {
   }
 
   // 2) Параллельно обрабатываем каждую пару, вызывая UnionSets:
-  tbb::parallel_for(
-    tbb::blocked_range<size_t>(0, allPairs.size()),
-    [&](const tbb::blocked_range<size_t>& range) {
-      for (size_t z = range.begin(); z < range.end(); ++z) {
-        const auto &pr = allPairs[z];
-        UnionSets(pr.first, pr.second);
+  tbb::parallel_for(tbb::blocked_range<size_t>(0, allPairs.size()),[&](const tbb::blocked_range<size_t>& range) {
+    for (size_t z = range.begin(); z < range.end(); ++z) {
+      const auto &pr = allPairs[z];
+      UnionSets(pr.first, pr.second);
       }
-    }
-  );
+    });
 }
-
 
 void TaskTBB::UnionSets(int idx_a, int idx_b) {
   int rootA = FindRoot(idx_a);
