@@ -105,12 +105,12 @@ void TaskTBB::ProcessUnion() {
   }
 
   // 2) Параллельно обрабатываем каждую пару, вызывая UnionSets:
-  tbb::parallel_for(tbb::blocked_range<size_t>(0, allPairs.size()),[&](const tbb::blocked_range<size_t>& range) {
+  tbb::parallel_for(tbb::blocked_range<size_t>(0, allPairs.size()), [&](const tbb::blocked_range<size_t>& range) {
     for (size_t z = range.begin(); z < range.end(); ++z) {
       const auto &pr = allPairs[z];
       UnionSets(pr.first, pr.second);
-      }
-    });
+    }
+  });
 }
 
 void TaskTBB::UnionSets(int idx_a, int idx_b) {
