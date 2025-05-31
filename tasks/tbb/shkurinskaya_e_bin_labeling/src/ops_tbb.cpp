@@ -9,13 +9,11 @@
 namespace shkurinskaya_e_bin_labeling_tbb {
 
 bool TaskTBB::ValidationImpl() {
-
   return task_data->inputs_count[0] > 1 && task_data->outputs_count[0] == task_data->inputs_count[0] &&
          task_data->inputs_count[1] == 1 && task_data->inputs_count[2] == 1;
 }
 
 bool TaskTBB::PreProcessingImpl() {
-
   const int total_size = task_data->inputs_count[0];
   auto *in_ptr = reinterpret_cast<int *>(task_data->inputs[0]);
   input_ = std::vector<int>(in_ptr, in_ptr + total_size);
