@@ -144,54 +144,113 @@ void TaskSTL::CompressPathsRange(int row_start, int row_end) {
 }
 
 bool TaskSTL::RunImpl() {
+  const int W = width_;
   const int H = height_;
 
-  const int num_threads = ppc::util::GetPPCNumThreads();
-  const int T = (num_threads > 0 ? num_threads : 1);
-
-  auto compute_ranges = [&](int thread_index) {
-    int base = (H * thread_index) / T;
-    int next = (H * (thread_index + 1)) / T;
-    return std::pair<int, int>(base, next);
-  };
-
+  // 1) Parallel InitializeUFRange по строкам
   {
+    const int num_threads = NumThreads() > 0 ? NumThreads() : 1;
+    const int T = num_threads;
+    auto compute_row_range = [&](int t) {
+      int start = (H * t) / T;
+      int end = (H * (t + 1)) / T;
+      return std::pair<int, int>(start, end);
+    };
+
     std::vector<std::thread> threads;
     threads.reserve(T);
-
     for (int t = 0; t < T; ++t) {
-      auto [row_start, row_end] = compute_ranges(t);
-      threads.emplace_back(&TaskSTL::InitializeUFRange, this, row_start, row_end);
+      auto [r0, r1] = compute_row_range(t);
+      threads.emplace_back(&TaskSTL::InitializeUFRange, this, r0, r1);
     }
-    for (auto &th : threads) {
+    for (auto &th : threads)
       th.join();
+  }
+
+  // 2) Собираем весь список смежных пар 1–1 в один вектор allPairs
+  // (single-thread)
+  std::vector<std::pair<int, int>> allPairs;
+  allPairs.reserve((size_t)H * W / 2);
+  for (int i = 0; i < H; ++i) {
+    int base_idx = i * W;
+    for (int j = 0; j < W; ++j) {
+      int idx = base_idx + j;
+      if (input_[idx] != 1)
+        continue;
+      // 2.1) вправо
+      if (j + 1 < W && input_[idx + 1] == 1) {
+        allPairs.emplace_back(idx, idx + 1);
+      }
+      // 2.2) вниз
+      if (i + 1 < H) {
+        int idx_down = (i + 1) * W + j;
+        if (input_[idx_down] == 1) {
+          allPairs.emplace_back(idx, idx_down);
+        }
+      }
+      // 2.3) вниз-вправо
+      if (i + 1 < H && j + 1 < W) {
+        int idx_dr = (i + 1) * W + (j + 1);
+        if (input_[idx_dr] == 1) {
+          allPairs.emplace_back(idx, idx_dr);
+        }
+      }
+      // 2.4) вниз-влево
+      if (i + 1 < H && j > 0) {
+        int idx_dl = (i + 1) * W + (j - 1);
+        if (input_[idx_dl] == 1) {
+          allPairs.emplace_back(idx, idx_dl);
+        }
+      }
     }
   }
 
+  // 3) Parallel UnionSets по allPairs
   {
+    const int num_threads = NumThreads() > 0 ? NumThreads() : 1;
+    const int T = num_threads;
+    const size_t M = allPairs.size();
+
+    // разбиваем allPairs на T примерно равных по размеру участков
+    auto compute_pair_range = [&](int t) {
+      size_t start = (M * t) / T;
+      size_t end = (M * (t + 1)) / T;
+      return std::pair<size_t, size_t>(start, end);
+    };
+
     std::vector<std::thread> threads;
     threads.reserve(T);
-
     for (int t = 0; t < T; ++t) {
-      auto [row_start, row_end] = compute_ranges(t);
-      threads.emplace_back(&TaskSTL::ProcessUnionRange, this, row_start, row_end);
+      auto [b, e] = compute_pair_range(t);
+      threads.emplace_back([&, b, e]() {
+        for (size_t z = b; z < e; ++z) {
+          const auto &pr = allPairs[z];
+          UnionSets(pr.first, pr.second);
+        }
+      });
     }
-    for (auto &th : threads) {
+    for (auto &th : threads)
       th.join();
-    }
   }
 
+  // 4) Parallel CompressPathsRange по строкам
   {
+    const int num_threads = NumThreads() > 0 ? NumThreads() : 1;
+    const int T = num_threads;
+    auto compute_row_range = [&](int t) {
+      int start = (H * t) / T;
+      int end = (H * (t + 1)) / T;
+      return std::pair<int, int>(start, end);
+    };
+
     std::vector<std::thread> threads;
     threads.reserve(T);
-
     for (int t = 0; t < T; ++t) {
-      auto [row_start, row_end] = compute_ranges(t);
-      threads.emplace_back(&TaskSTL::CompressPathsRange, this, row_start, row_end);
+      auto [r0, r1] = compute_row_range(t);
+      threads.emplace_back(&TaskSTL::CompressPathsRange, this, r0, r1);
     }
-    for (auto &th : threads) {
+    for (auto &th : threads)
       th.join();
-    }
   }
 
   return true;
