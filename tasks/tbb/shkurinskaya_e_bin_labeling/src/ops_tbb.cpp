@@ -38,44 +38,44 @@ bool TaskTBB::RunImpl() {
 
   tbb::parallel_for(tbb::blocked_range<int>(0, H),
                     [&](const tbb::blocked_range<int> &rows) {
-                      for (int i = rows.begin(); i < rows.end(); ++i) {
-                        int base = i * W;
-                        for (int j = 0; j < W; ++j) {
-                          int idx = base + j;
-                          if (input_[idx] == 1) {
-                            parent_[idx] = idx;
-                            rank_[idx] = 0;
-                          } else {
-                            parent_[idx] = -1;
-                          }
-                        }
-                      }
-                    });
+    for (int i = rows.begin(); i < rows.end(); ++i) {
+      int base = i * W;
+      for (int j = 0; j < W; ++j) {
+        int idx = base + j;
+        if (input_[idx] == 1) {
+          parent_[idx] = idx;
+          rank_[idx] = 0;
+        } else {
+          parent_[idx] = -1;
+        }
+      }
+    }
+  });
 
   ProcessUnion();
 
   tbb::parallel_for(tbb::blocked_range<int>(0, H),
                     [&](const tbb::blocked_range<int> &rows) {
-                      for (int i = rows.begin(); i < rows.end(); ++i) {
-                        int base = i * W;
-                        for (int j = 0; j < W; ++j) {
-                          int idx = base + j;
-                          if (input_[idx] == 1) {
-                            while (true) {
-                              int p = parent_[idx];
-                              if (p < 0)
-                                break;
-                              int gp = parent_[p];
-                              if (gp < 0)
-                                break;
-                              if (p == gp)
-                                break;
-                              parent_[idx] = gp;
-                            }
-                          }
-                        }
-                      }
-                    });
+    for (int i = rows.begin(); i < rows.end(); ++i) {
+      int base = i * W;
+      for (int j = 0; j < W; ++j) {
+        int idx = base + j;
+        if (input_[idx] == 1) {
+          while (true) {
+            int p = parent_[idx];
+            if (p < 0)
+              break;
+            int gp = parent_[p];
+            if (gp < 0)
+              break;
+            if (p == gp)
+              break;
+            parent_[idx] = gp;
+          }
+        }
+      }
+    }
+  });
 
   return true;
 }
@@ -83,30 +83,30 @@ bool TaskTBB::RunImpl() {
 void TaskTBB::ProcessUnion() {
   const int W = width_;
   const int H = height_;
-  static constexpr int dirs[8][2] = {{-1, 0},  {1, 0},  {0, -1}, {0, 1},
-                                     {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+  static constexpr int dirs[8][2] = {
+      {-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
   tbb::parallel_for(tbb::blocked_range<int>(0, H),
                     [&](const tbb::blocked_range<int> &rows) {
-                      for (int i = rows.begin(); i < rows.end(); ++i) {
-                        int base = i * W;
-                        for (int j = 0; j < W; ++j) {
-                          int idx = base + j;
-                          if (input_[idx] != 1)
-                            continue;
-                          for (int d = 0; d < 8; ++d) {
-                            int ni = i + dirs[d][0];
-                            int nj = j + dirs[d][1];
-                            if (!IsValidIndex(ni, nj))
-                              continue;
-                            int nidx = ni * W + nj;
-                            if (input_[nidx] == 1) {
-                              UnionSets(idx, nidx);
-                            }
-                          }
-                        }
-                      }
-                    });
+    for (int i = rows.begin(); i < rows.end(); ++i) {
+      int base = i * W;
+      for (int j = 0; j < W; ++j) {
+        int idx = base + j;
+        if (input_[idx] != 1)
+          continue;
+        for (int d = 0; d < 8; ++d) {
+          int ni = i + dirs[d][0];
+          int nj = j + dirs[d][1];
+          if (!IsValidIndex(ni, nj))
+            continue;
+          int nidx = ni * W + nj;
+          if (input_[nidx] == 1) {
+            UnionSets(idx, nidx);
+          }
+        }
+      }
+    }
+  });
 }
 
 void TaskTBB::UnionSets(int idx_a, int idx_b) {
