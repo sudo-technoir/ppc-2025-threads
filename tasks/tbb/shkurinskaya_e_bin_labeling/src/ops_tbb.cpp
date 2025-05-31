@@ -31,7 +31,6 @@ bool TaskTBB::PreProcessingImpl() {
 bool TaskTBB::RunImpl() {
   const int W = width_;
   const int H = height_;
-  const int N = W * H;
 
   tbb::parallel_for(tbb::blocked_range<int>(0, H), [&](const tbb::blocked_range<int> &rows) {
     for (int i = rows.begin(); i < rows.end(); ++i) {
@@ -131,7 +130,6 @@ bool TaskTBB::IsValidIndex(int i, int j) const { return (i >= 0 && i < height_ &
 bool TaskTBB::PostProcessingImpl() {
   const int W = width_;
   const int H = height_;
-  const int N = W * H;
 
   std::fill(label_.begin(), label_.end(), 0);
 
