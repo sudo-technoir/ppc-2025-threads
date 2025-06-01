@@ -1,12 +1,14 @@
 #pragma once
 
 #include <boost/mpi/communicator.hpp>
+#include <tbb/spin_mutex.h>
 #include <cstddef>
 #include <functional>
 #include <utility>
 #include <vector>
 
 #include "core/task/include/task.hpp"
+#include "core/util/include/util.hpp"
 
 namespace shkurinskaya_e_bin_labeling_all {
 
