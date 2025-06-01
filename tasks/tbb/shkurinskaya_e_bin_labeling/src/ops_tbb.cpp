@@ -1,3 +1,5 @@
+#include "tbb/shkurinskaya_e_bin_labeling/include/ops_tbb.hpp"
+
 #include <oneapi/tbb/blocked_range.h>
 #include <oneapi/tbb/parallel_for.h>
 #include <oneapi/tbb/spin_mutex.h>
@@ -6,7 +8,6 @@
 #include <utility>
 
 #include "core/util/include/util.hpp"
-#include "tbb/shkurinskaya_e_bin_labeling/include/ops_tbb.hpp"
 
 namespace shkurinskaya_e_bin_labeling_tbb {
 
