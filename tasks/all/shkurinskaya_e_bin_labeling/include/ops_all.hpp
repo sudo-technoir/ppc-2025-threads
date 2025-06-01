@@ -30,6 +30,7 @@ class TaskMPITBB : public ppc::core::Task {
   int FindRoot(int);
   void UnionSets(int, int);
   int FindRootGlobal(int v, std::vector<int> &parent_vec);
+  bool IsValidIndex(int i, int j) const;
 };
 
 }  // namespace shkurinskaya_e_bin_labeling_all
