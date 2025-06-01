@@ -231,7 +231,7 @@ bool TaskMPITBB::RunImpl() {
   // Сжимаем пути и получаем final_map:
   std::vector<int> global_map(total_nodes, -1);
   for (int u = 0; u < total_nodes; ++u) {
-    ru = FindRoot(u, global_parent);
+    ru = FindRootGlobal(u, global_parent);
     global_map[u] = ru;
   }
 
@@ -325,6 +325,25 @@ int TaskMPITBB::FindRoot(int v) {
   }
   return root;
 }
+
+int TaskMPITBB::FindRootGlobal(int v, std::vector<int> &parent_vec) {
+  int x = v;
+  // шаг 1: найти корень
+  while (parent_vec[x] >= 0 && parent_vec[x] != x) {
+    x = parent_vec[x];
+  }
+  if (x < 0) return -1;
+  int root = x;
+  // шаг 2: сжать путь
+  x = v;
+  while (parent_vec[x] != root) {
+    int p = parent_vec[x];
+    parent_vec[x] = root;
+    x = p;
+  }
+  return root;
+}
+
 
 bool TaskMPITBB::IsValidIndex(int i, int j) const { return (i >= 0 && i < height_ && j >= 0 && j < width_); }
 
