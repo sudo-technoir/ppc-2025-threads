@@ -1,3 +1,5 @@
+#include "all/shkurinskaya_e_bin_labeling/include/ops_all.hpp"
+
 #include <oneapi/tbb/parallel_reduce.h>
 #include <oneapi/tbb/task_arena.h>
 #include <tbb/tbb.h>
@@ -12,8 +14,6 @@
 #include <functional>
 #include <utility>
 #include <vector>
-
-#include "all/shkurinskaya_e_bin_labeling/include/ops_all.hpp"
 
 namespace shkurinskaya_e_bin_labeling_all {
 
