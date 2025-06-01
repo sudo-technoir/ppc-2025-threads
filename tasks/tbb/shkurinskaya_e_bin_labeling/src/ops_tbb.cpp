@@ -91,24 +91,6 @@ void TaskTBB::UnionSets(int idx_a, int idx_b) {
   }
 }
 
-int TaskTBB::FindRootGlobal(int v, std::vector<int> &parent_vec) {
-  int x = v;
-  while (parent_vec[x] >= 0 && parent_vec[x] != x) {
-    x = parent_vec[x];
-  }
-  if (x < 0) {
-    return -1;
-  }
-  int root = x;
-  x = v;
-  while (parent_vec[x] != root) {
-    int p = parent_vec[x];
-    parent_vec[x] = root;
-    x = p;
-  }
-  return root;
-}
-
 bool TaskTBB::RunImpl() {
   InitializeUF();
 
