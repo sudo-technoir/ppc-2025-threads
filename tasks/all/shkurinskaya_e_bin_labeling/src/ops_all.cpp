@@ -193,13 +193,8 @@ bool TaskMPITBB::RunImpl() {
     allBoundaryPairs.resize(total_boundary);
   }
 
-boost::mpi::gatherv(world_,
-                    local_boundary_pairs.data(),  // локальный буфер
-                    local_pairs_count,            // число локальных пар
-                    mpi_rank == 0 ? allBoundaryPairs.data() : nullptr,
-                    boundary_counts,  // std::vector<int>
-                    boundary_displs,  // std::vector<int>
-                    0);               // root = 0
+boost::mpi::gatherv(world_, local_boundary_pairs.data(), local_pairs_count,
+                    mpi_rank == 0 ? allBoundaryPairs.data() : nullptr, boundary_counts, boundary_displs, 0);
 
   int total_nodes = width_ * height_;
   std::vector<int> global_map;
@@ -272,10 +267,7 @@ bool TaskMPITBB::PostProcessingImpl() {
     displs_with_pixels[i] = displs_[i] * width_;
   }
 boost::mpi::gatherv(world_, res_local_.data(), static_cast<int>(local_H_* width_),
-                    mpi_rank == 0 ? res_global.data() : nullptr,
-                    counts_with_pixels,  // std::vector<int>
-                    displs_with_pixels,  // std::vector<int>
-                    0);
+                    mpi_rank == 0 ? res_global.data() : nullptr, counts_with_pixels, displs_with_pixels, 0);
 
   if (rank == 0) {
     int *out_ptr = reinterpret_cast<int *>(task_data->outputs[0]);
