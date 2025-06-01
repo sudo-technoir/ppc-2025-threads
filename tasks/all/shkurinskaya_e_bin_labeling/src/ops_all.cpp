@@ -191,7 +191,7 @@ bool TaskMPITBB::RunImpl() {
     boundary_displs[i] = boundary_displs[i - 1] + boundary_counts[i - 1];
   }
 
-  std::vector<std::pair<int,int>> allBoundaryPairs;
+  std::vector<std::pair<int, int>> allBoundaryPairs;
   if (rank == 0) {
     int total_boundary = boundary_displs[num_procs - 1] + boundary_counts[num_procs - 1];
     allBoundaryPairs.resize(total_boundary);
@@ -206,21 +206,23 @@ bool TaskMPITBB::RunImpl() {
                       0);
 
   int total_nodes = width_ * height_;
+std::vector<int> global_map;
+
+if (rank == 0) {
   std::vector<int> global_parent(total_nodes, -1);
   std::vector<int> global_rank(total_nodes, 0);
-  // Инициализация: каждый пиксель сам себе root или -1, если фон
   for (int u = 0; u < total_nodes; ++u) {
     if (input_global_[u] == 1) {
       global_parent[u] = u;
       global_rank[u] = 0;
     }
   }
-  // Теперь делаем Union по всем парам:
+
   for (auto &pr : allBoundaryPairs) {
     int u = pr.first;
     int v = pr.second;
-    int ru = FindRoot(u);
-    int rv = FindRoot(v);
+    int ru = FindRootGlobal(u, global_parent);
+    int rv = FindRootGlobal(v, global_parent);
     if (ru >= 0 && rv >= 0 && ru != rv) {
       if (global_rank[ru] < global_rank[rv]) std::swap(ru, rv);
       global_parent[rv] = ru;
@@ -228,16 +230,18 @@ bool TaskMPITBB::RunImpl() {
     }
   }
 
-  // Сжимаем пути и получаем final_map:
-  std::vector<int> global_map(total_nodes, -1);
+  global_map.resize(total_nodes);
   for (int u = 0; u < total_nodes; ++u) {
-    ru = FindRootGlobal(u, global_parent);
+    int ru = FindRootGlobal(u, global_parent);
     global_map[u] = ru;
   }
+}
 
-  // Рассылаем готовую global_map всем rank’ам
-  boost::mpi::broadcast(world_, global_map, 0);
+if (rank != 0) {
+  global_map.resize(total_nodes);
+}
 
+boost::mpi::broadcast(world_, global_map, 0);
   tbb::parallel_for(0, local_H_, [&](int i) {
     int base = i * width_;
     for (int j = 0; j < width_; ++j) {
@@ -281,7 +285,7 @@ bool TaskMPITBB::PostProcessingImpl() {
                       0);
 
   if (rank == 0) {
-    int *out_ptr = reinterpret_cast<int *>(task_data->outputs[0]);
+    int *out_ptr = reinterpret_cast<int*>(task_data->outputs[0]);
     std::ranges::copy(res_global.begin(), res_global.end(), out_ptr);
   }
   return true;
