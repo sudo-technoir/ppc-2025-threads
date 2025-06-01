@@ -139,22 +139,18 @@ bool TaskSTL::RunImpl() {
     for (int j = 0; j < W; ++j) {
       int idx = base_idx + j;
       if (input_[idx] != 1) continue;
-      if (j + 1 < W && input_[idx + 1] == 1)
-        allPairs.emplace_back(idx, idx + 1);
+      if (j + 1 < W && input_[idx + 1] == 1) allPairs.emplace_back(idx, idx + 1);
       if (i + 1 < H) {
         int idx_down = (i + 1) * W + j;
-        if (input_[idx_down] == 1)
-          allPairs.emplace_back(idx, idx_down);
+        if (input_[idx_down] == 1) allPairs.emplace_back(idx, idx_down);
       }
       if (i + 1 < H && j + 1 < W) {
         int idx_dr = (i + 1) * W + (j + 1);
-        if (input_[idx_dr] == 1)
-          allPairs.emplace_back(idx, idx_dr);
+        if (input_[idx_dr] == 1) allPairs.emplace_back(idx, idx_dr);
       }
       if (i + 1 < H && j > 0) {
         int idx_dl = (i + 1) * W + (j - 1);
-        if (input_[idx_dl] == 1)
-          allPairs.emplace_back(idx, idx_dl);
+        if (input_[idx_dl] == 1) allPairs.emplace_back(idx, idx_dl);
       }
     }
   }
