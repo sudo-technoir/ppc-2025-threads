@@ -266,7 +266,7 @@ bool TaskMPITBB::PostProcessingImpl() {
     counts_with_pixels[i] = counts_[i] * width_;
     displs_with_pixels[i] = displs_[i] * width_;
   }
-  boost::mpi::gatherv(world_, res_local_.data(), static_cast<int>(local_H_* width_),
+  boost::mpi::gatherv(world_, res_local_.data(), static_cast<int>(local_H_ * width_),
                       mpi_rank == 0 ? res_global.data() : nullptr, counts_with_pixels, displs_with_pixels, 0);
 
   if (rank == 0) {
