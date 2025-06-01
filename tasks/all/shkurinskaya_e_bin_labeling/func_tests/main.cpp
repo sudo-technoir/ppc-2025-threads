@@ -4,9 +4,9 @@
 #include <memory>
 #include <vector>
 
+#include "all/shkurinskaya_e_bin_labeling/include/ops_all.hpp"
 #include "core/task/include/task.hpp"
 #include "core/util/include/util.hpp"
-#include "all/shkurinskaya_e_bin_labeling/include/ops_all.hpp"
 
 TEST(shkurinskaya_e_bin_labeling_all, empty_input) {
   int height = 5000;
