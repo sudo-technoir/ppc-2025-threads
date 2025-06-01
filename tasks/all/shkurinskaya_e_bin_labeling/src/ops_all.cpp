@@ -158,9 +158,13 @@ bool TaskMPITBB::RunImpl() {
   int prev = (rank - 1 + num_procs) % num_procs;
   int next = (rank + 1) % num_procs;
 
-  boost::mpi::sendrecv(world_, top_row.data(), width_, next, 0, recv_top.data(), width_, prev, 0);
+  boost::mpi::request req_top = world_.irecv(prev, 0, recv_top.data(), width_);
+  world_.send(next, 0, top_row.data(), width_);
+  req_top.wait();
 
-  boost::mpi::sendrecv(world_, bottom_row.data(), width_, prev, 1, recv_bottom.data(), width_, next, 1);
+  boost::mpi::request req_bottom = world_.irecv(next, 1, recv_bottom.data(), width_);
+  world_.send(prev, 1, bottom_row.data(), width_);
+  req_bottom.wait();
 
   std::vector<std::pair<int, int>> local_boundary_pairs;
   if (rank < num_procs - 1) {
@@ -189,8 +193,13 @@ bool TaskMPITBB::RunImpl() {
     allBoundaryPairs.resize(total_boundary);
   }
 
-  boost::mpi::gatherv(world_, local_boundary_pairs.data(), local_pairs_count, allBoundaryPairs.data(),
-                      boundary_counts.data(), boundary_displs.data(), 0);
+boost::mpi::gatherv(world_,
+                    local_boundary_pairs.data(),  // локальный буфер
+                    local_pairs_count,            // число локальных пар
+                    mpi_rank == 0 ? allBoundaryPairs.data() : nullptr,
+                    boundary_counts,  // std::vector<int>
+                    boundary_displs,  // std::vector<int>
+                    0);               // root = 0
 
   int total_nodes = width_ * height_;
   std::vector<int> global_map;
@@ -262,9 +271,11 @@ bool TaskMPITBB::PostProcessingImpl() {
     counts_with_pixels[i] = counts_[i] * width_;
     displs_with_pixels[i] = displs_[i] * width_;
   }
-
-  boost::mpi::gatherv(world_, res_local_.data(), static_cast<int>(local_H_ * width_),
-                      rank == 0 ? res_global.data() : nullptr, counts_with_pixels.data(), displs_with_pixels.data(), 0);
+boost::mpi::gatherv(world_, res_local_.data(), static_cast<int>(local_H_* width_),
+                    mpi_rank == 0 ? res_global.data() : nullptr,
+                    counts_with_pixels,  // std::vector<int>
+                    displs_with_pixels,  // std::vector<int>
+                    0);
 
   if (rank == 0) {
     int *out_ptr = reinterpret_cast<int *>(task_data->outputs[0]);
