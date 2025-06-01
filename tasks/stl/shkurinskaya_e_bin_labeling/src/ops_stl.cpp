@@ -188,7 +188,7 @@ bool TaskSTL::RunImpl() {
     int num_threads = NumThreads() > 0 ? NumThreads() : 1;
     int Trows = std::min(num_threads, H);
     if (Trows <= 0) Trows = 1;
-  
+
     auto compute_row_range = [&](int t) {
       int start = (H * t) / Trows;
       int end = (H * (t + 1)) / Trows;
