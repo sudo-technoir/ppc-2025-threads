@@ -1,5 +1,3 @@
-#include "all/shkurinskaya_e_bin_labeling/include/ops_all.hpp"
-
 #include <oneapi/tbb/parallel_reduce.h>
 #include <oneapi/tbb/task_arena.h>
 #include <tbb/tbb.h>
@@ -15,6 +13,8 @@
 #include <utility>
 #include <vector>
 
+#include "all/shkurinskaya_e_bin_labeling/include/ops_all.hpp"
+
 namespace shkurinskaya_e_bin_labeling_all {
 
 bool TaskMPITBB::ValidationImpl() {
@@ -27,7 +27,7 @@ bool TaskMPITBB::PreProcessingImpl() {
 
   if (rank == 0) {
     int total_size = task_data->inputs_count[0];
-    int *ptr = reinterpret_cast<int*>(task_data->inputs[0]);
+    int *ptr = reinterpret_cast<int *>(task_data->inputs[0]);
     input_global_.assign(ptr, ptr + total_size);
 
     width_ = reinterpret_cast<int *>(task_data->inputs[1])[0];
@@ -64,11 +64,11 @@ bool TaskMPITBB::PreProcessingImpl() {
   // 4) Scatterv: отправляем rank’ам нужные куски
   std::vector<int> local_flat(local_H_ * width_);
   boost::mpi::scatterv(world_,
-                       input_global_.data(),          // у rank0 — полный массив
-                       counts_with_pixels,           // сколько пикселей на каждый rank
-                       displs_with_pixels,           // сдвиг в пикселях
-                       local_flat.data(),            // буфер, куда записать локально
-                       local_H_ * width_, 0);        // rank0 — root communicator
+                       input_global_.data(),   // у rank0 — полный массив
+                       counts_with_pixels,     // сколько пикселей на каждый rank
+                       displs_with_pixels,     // сдвиг в пикселях
+                       local_flat.data(),      // буфер, куда записать локально
+                       local_H_ * width_, 0);  // rank0 — root communicator
 
   // 5) Сохраняем локальный кусок в input_
   input_ = std::move(local_flat);
@@ -100,7 +100,7 @@ bool TaskMPITBB::RunImpl() {
   });
 
   // 1.2) Собираем localPairs (локальные пары 1–1)
-  std::vector<std::pair<int,int>> localPairs;
+  std::vector<std::pair<int, int>> localPairs;
   localPairs.reserve(local_H_ * width_ / 2);
   for (int i = 0; i < local_H_; ++i) {
     int base = i * width_;
@@ -148,29 +148,21 @@ bool TaskMPITBB::RunImpl() {
 
   std::vector<int> top_row(width_, 0), bottom_row(width_, 0);
   if (local_H_ > 0) {
-    std::copy(input_.begin() + (local_H_ - 1) * width_,
-              input_.begin() + local_H_ * width_,
-              top_row.begin());
+    std::copy(input_.begin() + (local_H_ - 1) * width_, input_.begin() + local_H_ * width_, top_row.begin());
   }
   if (local_H_ > 0) {
-    std::copy(input_.begin(),
-              input_.begin() + width_,
-              bottom_row.begin());
+    std::copy(input_.begin(), input_.begin() + width_, bottom_row.begin());
   }
 
   std::vector<int> recv_top(width_, 0), recv_bottom(width_, 0);
   int prev = (rank - 1 + num_procs) % num_procs;
   int next = (rank + 1) % num_procs;
 
-  boost::mpi::sendrecv(world_,
-                       top_row.data(), width_, next, 0,
-                       recv_top.data(), width_, prev, 0);
+  boost::mpi::sendrecv(world_, top_row.data(), width_, next, 0, recv_top.data(), width_, prev, 0);
 
-  boost::mpi::sendrecv(world_,
-                       bottom_row.data(), width_, prev, 1,
-                       recv_bottom.data(), width_, next, 1);
+  boost::mpi::sendrecv(world_, bottom_row.data(), width_, prev, 1, recv_bottom.data(), width_, next, 1);
 
-  std::vector<std::pair<int,int>> local_boundary_pairs;
+  std::vector<std::pair<int, int>> local_boundary_pairs;
   if (rank < num_procs - 1) {
     for (int j = 0; j < width_; ++j) {
       if (top_row[j] == 1 && recv_bottom[j] == 1) {
@@ -197,51 +189,46 @@ bool TaskMPITBB::RunImpl() {
     allBoundaryPairs.resize(total_boundary);
   }
 
-  boost::mpi::gatherv(world_,
-                      local_boundary_pairs.data(),
-                      local_pairs_count,
-                      allBoundaryPairs.data(),
-                      boundary_counts.data(),
-                      boundary_displs.data(),
-                      0);
+  boost::mpi::gatherv(world_, local_boundary_pairs.data(), local_pairs_count, allBoundaryPairs.data(),
+                      boundary_counts.data(), boundary_displs.data(), 0);
 
   int total_nodes = width_ * height_;
-std::vector<int> global_map;
+  std::vector<int> global_map;
 
-if (rank == 0) {
-  std::vector<int> global_parent(total_nodes, -1);
-  std::vector<int> global_rank(total_nodes, 0);
-  for (int u = 0; u < total_nodes; ++u) {
-    if (input_global_[u] == 1) {
-      global_parent[u] = u;
-      global_rank[u] = 0;
+  if (rank == 0) {
+    std::vector<int> global_parent(total_nodes, -1);
+    std::vector<int> global_rank(total_nodes, 0);
+    for (int u = 0; u < total_nodes; ++u) {
+      if (input_global_[u] == 1) {
+        global_parent[u] = u;
+        global_rank[u] = 0;
+      }
+    }
+
+    for (auto &pr : allBoundaryPairs) {
+      int u = pr.first;
+      int v = pr.second;
+      int ru = FindRootGlobal(u, global_parent);
+      int rv = FindRootGlobal(v, global_parent);
+      if (ru >= 0 && rv >= 0 && ru != rv) {
+        if (global_rank[ru] < global_rank[rv]) std::swap(ru, rv);
+        global_parent[rv] = ru;
+        if (global_rank[ru] == global_rank[rv]) global_rank[ru]++;
+      }
+    }
+
+    global_map.resize(total_nodes);
+    for (int u = 0; u < total_nodes; ++u) {
+      int ru = FindRootGlobal(u, global_parent);
+      global_map[u] = ru;
     }
   }
 
-  for (auto &pr : allBoundaryPairs) {
-    int u = pr.first;
-    int v = pr.second;
-    int ru = FindRootGlobal(u, global_parent);
-    int rv = FindRootGlobal(v, global_parent);
-    if (ru >= 0 && rv >= 0 && ru != rv) {
-      if (global_rank[ru] < global_rank[rv]) std::swap(ru, rv);
-      global_parent[rv] = ru;
-      if (global_rank[ru] == global_rank[rv]) global_rank[ru]++;
-    }
+  if (rank != 0) {
+    global_map.resize(total_nodes);
   }
 
-  global_map.resize(total_nodes);
-  for (int u = 0; u < total_nodes; ++u) {
-    int ru = FindRootGlobal(u, global_parent);
-    global_map[u] = ru;
-  }
-}
-
-if (rank != 0) {
-  global_map.resize(total_nodes);
-}
-
-boost::mpi::broadcast(world_, global_map, 0);
+  boost::mpi::broadcast(world_, global_map, 0);
   tbb::parallel_for(0, local_H_, [&](int i) {
     int base = i * width_;
     for (int j = 0; j < width_; ++j) {
@@ -249,7 +236,7 @@ boost::mpi::broadcast(world_, global_map, 0);
       if (input_[idx] == 1) {
         int local_root = parent_[idx];
         int global_root = local_offset_rows_ * width_ + local_root;
-        int final_root  = global_map[global_root];
+        int final_root = global_map[global_root];
         res_local_[idx] = final_root;
       } else {
         res_local_[idx] = 0;
@@ -276,16 +263,11 @@ bool TaskMPITBB::PostProcessingImpl() {
     displs_with_pixels[i] = displs_[i] * width_;
   }
 
-  boost::mpi::gatherv(world_,
-                      res_local_.data(),
-                      static_cast<int>(local_H_ * width_),
-                      rank == 0 ? res_global.data() : nullptr,
-                      counts_with_pixels.data(),
-                      displs_with_pixels.data(),
-                      0);
+  boost::mpi::gatherv(world_, res_local_.data(), static_cast<int>(local_H_ * width_),
+                      rank == 0 ? res_global.data() : nullptr, counts_with_pixels.data(), displs_with_pixels.data(), 0);
 
   if (rank == 0) {
-    int *out_ptr = reinterpret_cast<int*>(task_data->outputs[0]);
+    int *out_ptr = reinterpret_cast<int *>(task_data->outputs[0]);
     std::ranges::copy(res_global.begin(), res_global.end(), out_ptr);
   }
   return true;
@@ -347,7 +329,6 @@ int TaskMPITBB::FindRootGlobal(int v, std::vector<int> &parent_vec) {
   }
   return root;
 }
-
 
 bool TaskMPITBB::IsValidIndex(int i, int j) const { return (i >= 0 && i < height_ && j >= 0 && j < width_); }
 
