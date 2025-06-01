@@ -19,7 +19,7 @@ class TaskMPITBB : public ppc::core::Task {
   bool PostProcessingImpl() override;
 
  private:
-  boost::mpi::communicator world_, group_;
+  boost::mpi::communicator world_;
   std::vector<int> input_;
   std::vector<int> res_local_;
   std::vector<int> counts_, displs_;
