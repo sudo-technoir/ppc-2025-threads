@@ -35,8 +35,8 @@ class TaskTBB : public ppc::core::Task {
   [[nodiscard]] bool IsValidIndex(int i, int j) const;
   void ProcessUnion();
   void InitializeUF();
-  void CollectPairs(std::vector<std::pair<int,int>>& all_pairs);
-  void ExecuteUnions(const std::vector<std::pair<int,int>>& all_pairs);
+  void CollectPairs(std::vector<std::pair<int, int>>& all_pairs);
+  void ExecuteUnions(const std::vector<std::pair<int, int>>& all_pairs);
   void CompressPaths();
 };
 
