@@ -21,7 +21,7 @@ class TaskMPITBB : public ppc::core::Task {
  private:
   boost::mpi::communicator world_, group_;
   std::vector<int> input_;
-  std::vector<int> res_local_; 
+  std::vector<int> res_local_;
   std::vector<int> counts_, displs_;
   int width_, height_;
   int local_H_, local_offset_rows_;
@@ -32,8 +32,8 @@ class TaskMPITBB : public ppc::core::Task {
   void CompressPathsRange(int r0, int r1);
 
   void SolveBoundaryPairs();
-  void ExchangeBoundaryRows(std::vector<int>& top_row, std::vector<int>& bottom_row); 
+  void ExchangeBoundaryRows(std::vector<int>& top_row, std::vector<int>& bottom_row);
   void BuildBoundaryPairs(const std::vector<int>& recv_top, const std::vector<int>& recv_bottom);
 };
 
-}  // namespace shkurinskaya_e_bin_labeling_tbb
+}  // namespace shkurinskaya_e_bin_labeling_all
