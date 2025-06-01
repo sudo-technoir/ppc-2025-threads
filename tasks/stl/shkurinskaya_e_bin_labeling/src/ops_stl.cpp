@@ -112,8 +112,9 @@ bool TaskSTL::RunImpl() {
   // 1) Parallel InitializeUFRange по строкам
   {
     int num_threads = NumThreads() > 0 ? NumThreads() : 1;
-    int Trows = std::min(num_threads, H);
-    if (Trows <= 0) Trows = 1;
+    // Если строк меньше, чем потоков, работаем в 1 потоке:
+    int Trows = (H >= num_threads ? num_threads : 1);
+
     auto compute_row_range = [&](int t) {
       int start = (H * t) / Trows;
       int end = (H * (t + 1)) / Trows;
@@ -130,6 +131,7 @@ bool TaskSTL::RunImpl() {
     }
     for (auto &th : threads) th.join();
   }
+
   // 2) Собираем список всех пар allPairs (single‐thread)
   std::vector<std::pair<int, int>> allPairs;
   allPairs.reserve((size_t)H * W / 2);
@@ -158,8 +160,8 @@ bool TaskSTL::RunImpl() {
   {
     size_t M = allPairs.size();
     int num_threads = NumThreads() > 0 ? NumThreads() : 1;
-    int Tpairs = std::min<int>(num_threads, (int)M);
-    if (Tpairs <= 0) Tpairs = 1;
+    // Если пар меньше, чем потоков, используем 1 поток:
+    int Tpairs = (M >= (size_t)num_threads ? num_threads : 1);
 
     auto compute_pair_range = [&](int t) {
       size_t start = (M * t) / Tpairs;
@@ -186,8 +188,8 @@ bool TaskSTL::RunImpl() {
   // 4) Parallel CompressPathsRange по строкам
   {
     int num_threads = NumThreads() > 0 ? NumThreads() : 1;
-    int Trows = std::min(num_threads, H);
-    if (Trows <= 0) Trows = 1;
+    // Если строк меньше, чем потоков, работаем в 1 потоке:
+    int Trows = (H >= num_threads ? num_threads : 1);
 
     auto compute_row_range = [&](int t) {
       int start = (H * t) / Trows;
@@ -205,6 +207,7 @@ bool TaskSTL::RunImpl() {
     }
     for (auto &th : threads) th.join();
   }
+
   return true;
 }
 
