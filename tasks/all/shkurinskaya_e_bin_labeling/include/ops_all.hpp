@@ -24,6 +24,11 @@ class TaskMPITBB : public ppc::core::Task {
   std::vector<int> res_local_;
   std::vector<int> counts_, displs_;
   std::vector<int> input_global_;
+  std::vector<int> parent_;
+  std::vector<int> rank_;
+  std::vector<int> label_;
+  tbb::spin_mutex uf_mutex_;
+
   int width_, height_;
   int local_H_, local_offset_rows_;
 
