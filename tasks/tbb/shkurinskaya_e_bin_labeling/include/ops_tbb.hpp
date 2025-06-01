@@ -4,6 +4,7 @@
 #include <oneapi/tbb/parallel_for.h>
 #include <oneapi/tbb/spin_mutex.h>
 
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -29,10 +30,14 @@ class TaskTBB : public ppc::core::Task {
   std::vector<int> label_;
   tbb::spin_mutex uf_mutex_;
 
-  int FindRoot(int index);
+  int FindRoot(int v);
   void UnionSets(int a, int b);
   [[nodiscard]] bool IsValidIndex(int i, int j) const;
   void ProcessUnion();
+  void InitializeUF();
+  void CollectPairs(std::vector<std::pair<int,int>>& all_pairs);
+  void ExecuteUnions(const std::vector<std::pair<int,int>>& all_pairs);
+  void CompressPaths();
 };
 
 }  // namespace shkurinskaya_e_bin_labeling_tbb
