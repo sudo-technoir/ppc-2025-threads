@@ -1,7 +1,8 @@
 #pragma once
 
-#include <boost/mpi/communicator.hpp>
 #include <tbb/spin_mutex.h>
+
+#include <boost/mpi/communicator.hpp>
 #include <cstddef>
 #include <functional>
 #include <utility>
