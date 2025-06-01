@@ -19,8 +19,8 @@ TEST(shkurinskaya_e_bin_labeling_all, test_pipeline_run) {
   std::vector<int> out(size);
   std::vector<int> ans(size, 1);
   // Create TaskData
+  auto task_data_all = std::make_shared<ppc::core::TaskData>();
   if (world.rank() == 0) {
-    auto task_data_all = std::make_shared<ppc::core::TaskData>();
     task_data_all->inputs.emplace_back(reinterpret_cast<uint8_t *>(in.data()));
     task_data_all->inputs_count.emplace_back(in.size());
     task_data_all->inputs.emplace_back(reinterpret_cast<uint8_t *>(&height));
@@ -65,8 +65,8 @@ TEST(shkurinskaya_e_bin_labeling_all, test_task_run) {
   std::vector<int> out(size);
   std::vector<int> ans(size, 1);
   // Create TaskData
+  auto task_data_all = std::make_shared<ppc::core::TaskData>();
   if (world.rank() == 0) {
-    auto task_data_all = std::make_shared<ppc::core::TaskData>();
     task_data_all->inputs.emplace_back(reinterpret_cast<uint8_t *>(in.data()));
     task_data_all->inputs_count.emplace_back(in.size());
     task_data_all->inputs.emplace_back(reinterpret_cast<uint8_t *>(&height));
