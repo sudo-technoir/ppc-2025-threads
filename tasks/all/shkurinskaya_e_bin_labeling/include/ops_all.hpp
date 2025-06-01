@@ -29,12 +29,6 @@ class TaskMPITBB : public ppc::core::Task {
 
   int FindRoot(int);
   void UnionSets(int, int);
-  void InitializeUFRange(int r0, int r1);
-  void CompressPathsRange(int r0, int r1);
-
-  void SolveBoundaryPairs();
-  void ExchangeBoundaryRows(std::vector<int>& top_row, std::vector<int>& bottom_row);
-  void BuildBoundaryPairs(const std::vector<int>& recv_top, const std::vector<int>& recv_bottom);
 };
 
 }  // namespace shkurinskaya_e_bin_labeling_all
